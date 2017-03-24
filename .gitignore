@@ -1,0 +1,4 @@
+*.msh
+*.pos
+lib/
+.DS_Store
