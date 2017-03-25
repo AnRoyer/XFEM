@@ -3,6 +3,8 @@
 #include "fem.h"
 #include "computationTools.h"
 
+#include "MLine.h"
+
 /*
  *  Helmholtz 1D :
  *
@@ -12,7 +14,7 @@
  */
 
 
-std::vector< std::complex<double> > solveFEM(GModel* m, int nbNodes, Param param, Physical physical)
+std::vector< std::complex<double> > FEM::solve(GModel* m, int nbNodes, Param param, Physical physical)
 {
     gmm::csr_matrix< std::complex<double> > K(nbNodes, nbNodes);
     gmm::row_matrix< gmm::wsvector< std::complex<double> > > Ktmp(nbNodes, nbNodes);
@@ -26,7 +28,6 @@ std::vector< std::complex<double> > solveFEM(GModel* m, int nbNodes, Param param
     //Boundaries
     for(unsigned int i = 0; i < physical.tagDir.size(); i++)
     {
-        std::cout << "Dirichlet boundary conditions." << std::endl;
         for(unsigned int j = 0; j < nbNodes; j++)
         {
             Ktmp(physical.tagDir[i]-1,j) = 0;
@@ -38,7 +39,6 @@ std::vector< std::complex<double> > solveFEM(GModel* m, int nbNodes, Param param
     
     for(unsigned int i = 0; i < physical.tagInf.size(); i++)
     {
-        std::cout << "Sommerfeld radiation condition." << std::endl;
         Ktmp(physical.tagInf[i]-1, physical.tagInf[i]-1) += std::complex<double>(0.0, -param.k_1);//Sommerfeld radiation condition
     }
     
@@ -59,7 +59,7 @@ std::vector< std::complex<double> > solveFEM(GModel* m, int nbNodes, Param param
     return u;
 }
 
-void computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktmp, GModel::eiter eBegin, GModel::eiter eEnd, int nbNodes, Param param)
+void FEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktmp, GModel::eiter eBegin, GModel::eiter eEnd, int nbNodes, Param param)
 {
     for(GModel::eiter it = eBegin; it != eEnd; ++it)
     {
@@ -84,7 +84,14 @@ void computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktmp, GM
                     Ke(i,j) = integraleK(1, i, j, 3)/J;
                     if(x0 < param.x_bnd && x1 > param.x_bnd)
                     {
-                        Me(i,j) = - (param.k_0+param.k_1)/2*(param.k_0+param.k_1)/2*integraleM(1, i, j, 3)*J;
+                        if(i == 0)
+                        {
+                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 3)*J;
+                        }
+                        else if(i == 1)
+                        {
+                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 3)*J;
+                        }
                     }
                     else if(x0 < param.x_bnd && x1 <= param.x_bnd)
                     {

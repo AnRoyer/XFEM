@@ -7,33 +7,37 @@
 #include "Gmsh.h"
 #include "GModel.h"
 #include "MElement.h"
+#include "MPoint.h"
 #include "MVertex.h"
 
+#include "analytical.h"
 #include "fem.h"
+#include "xfem.h"
+#include "error.h"
 
 #define GAMMADIR 1
 #define GAMMAINF 2
 #define OMEGA 3
 
-void writePOS(std::vector< std::complex<double> > u);
+void writePOS(GModel* m, std::vector< std::complex<double> > u, std::string name);
 Param readParam(int argc, char **argv);
 Physical checkPhysical(GModel *m);
 
 int main(int argc, char **argv)
 {
-    std::cout << "###############################################" << std::endl;
-    std::cout << "#                                             #" << std::endl;
-    std::cout << "#   #       #  ########  ########  #      #   #" << std::endl;
-    std::cout << "#    #     #   #         #         ##    ##   #" << std::endl;
-    std::cout << "#     #   #    #         #         # #  # #   #" << std::endl;
-    std::cout << "#      # #     #         #         #  ##  #   #" << std::endl;
-    std::cout << "#       #      #####     #####     #      #   #" << std::endl;
-    std::cout << "#      # #     #         #         #      #   #" << std::endl;
-    std::cout << "#     #   #    #         #         #      #   #" << std::endl;
-    std::cout << "#    #     #   #         #         #      #   #" << std::endl;
-    std::cout << "#   #       #  #         ########  #      #   #" << std::endl;
-    std::cout << "#                                             #" << std::endl;
-    std::cout << "###############################################" << std::endl << std::endl;
+    std::cout << "#################################################" << std::endl;
+    std::cout << "#                                               #" << std::endl;
+    std::cout << "#    #       #  ########  ########  #      #    #" << std::endl;
+    std::cout << "#     #     #   #         #         ##    ##    #" << std::endl;
+    std::cout << "#      #   #    #         #         # #  # #    #" << std::endl;
+    std::cout << "#       # #     #         #         #  ##  #    #" << std::endl;
+    std::cout << "#        #      #####     #####     #      #    #" << std::endl;
+    std::cout << "#       # #     #         #         #      #    #" << std::endl;
+    std::cout << "#      #   #    #         #         #      #    #" << std::endl;
+    std::cout << "#     #     #   #         #         #      #    #" << std::endl;
+    std::cout << "#    #       #  #         ########  #      #    #" << std::endl;
+    std::cout << "#                                               #" << std::endl;
+    std::cout << "#################################################" << std::endl << std::endl;
     
     if(argc < 1)
     {
@@ -49,9 +53,7 @@ int main(int argc, char **argv)
     
     Param param = readParam(argc, argv);
     Physical physical = checkPhysical(m);
-    
-    std::cout << physical.tagDir[0] << " " << physical.tagInf[0] << " " << param.wave << std::endl;
-    
+        
     int dim = m->getDim();
     int nbNodes = m->getNumMeshVertices();
     
@@ -59,9 +61,30 @@ int main(int argc, char **argv)
     {
         std::cout << "1D analysis..." << std::endl;
         
-        std::vector< std::complex<double> > u = solveFEM(m, nbNodes, param, physical);
+        std::cout << "### ANALYTICAL ###" << std::endl;
         
-        writePOS(u);
+        std::vector< std::complex<double> > uANALYTICAL = ANALYTICAL::solve(m, nbNodes, param, physical);
+        writePOS(m, uANALYTICAL, "uANALYTICAL");
+        
+        std::cout << std::endl;
+        std::cout << "### FEM ###" << std::endl;
+        std::cout << "-> u" << std::endl;
+        std::vector< std::complex<double> > uFEM = FEM::solve(m, nbNodes, param, physical);
+        writePOS(m, uFEM, "uFEM");
+        std::cout << "-> e" << std::endl;
+        std::vector< std::complex<double> > eFEM = error(uANALYTICAL, uFEM);
+        writePOS(m, eFEM, "eFEM");
+        
+        std::cout << std::endl;
+        std::cout << "### XFEM ###" << std::endl;
+        std::cout << "-> u" << std::endl;
+        std::vector< std::complex<double> > uXFEM = XFEM::solve(m, nbNodes, param, physical);
+        writePOS(m, uXFEM, "uXFEM");
+        std::cout << "-> e" << std::endl;
+        std::vector< std::complex<double> > eXFEM = error(uANALYTICAL, uXFEM);
+        writePOS(m, eXFEM, "eXFEM");
+        
+        std::cout << std::endl;
     }
     else if(dim == 2)
     {
@@ -74,54 +97,37 @@ int main(int argc, char **argv)
     return 1;
 }
 
-void writePOS(std::vector< std::complex<double> > u)
+void writePOS(GModel* m, std::vector< std::complex<double> > u, std::string name)
 {
-    std::ofstream posR("u_real.pos", std::ofstream::trunc);
+    std::ofstream pos(name + ".pos", std::ofstream::trunc);
     
-    posR << "$MeshFormat" << std::endl;
-    posR << "2.2 0 8" << std::endl;
-    posR << "$EndMeshFormat" << std::endl;
-    posR << "$NodeData" << std::endl;
-    posR << "1" << std::endl;
-    posR << "\"u_real\"" << std::endl;
-    posR << "1" << std::endl;
-    posR << "1.0" << std::endl;
-    posR << "3" << std::endl;
-    posR << "0" << std::endl;
-    posR << "1" << std::endl;
-    posR << u.size() << std::endl;
+    pos << "View \"" << name << "\" {" << std::endl;
     
-    for(unsigned int i = 0; i < u.size(); i++)
+    //Loop over vertices
+    for(GModel::viter it = m->firstVertex(); it != m->lastVertex(); ++it)
     {
-        posR << i+1 << " " << u[i].real() << std::endl;
+        GVertex *v = *it;
+        
+        for(unsigned int i = 0; i < v->points.size(); i++)
+        {
+            pos << "SP(" << v->points[i]->getVertex(0)->x() << ","  << v->points[i]->getVertex(0)->y() << ","  << v->points[i]->getVertex(0)->z() << "){" << u[v->points[i]->getVertex(0)->getNum()-1].real() << "," << u[v->points[i]->getVertex(0)->getNum()-1].imag() << "};" << std::endl;
+        }
     }
-    posR << "$EndNodeData" << std::endl;
     
-    posR.close();
-    
-    
-    std::ofstream posI("u_imag.pos", std::ofstream::trunc);
-    
-    posI << "$MeshFormat" << std::endl;
-    posI << "2.2 0 8" << std::endl;
-    posI << "$EndMeshFormat" << std::endl;
-    posI << "$NodeData" << std::endl;
-    posI << "1" << std::endl;
-    posI << "\"u_imag\"" << std::endl;
-    posI << "1" << std::endl;
-    posI << "1.0" << std::endl;
-    posI << "3" << std::endl;
-    posI << "0" << std::endl;
-    posI << "1" << std::endl;
-    posI << u.size() << std::endl;
-    
-    for(unsigned int i = 0; i < u.size(); i++)
+    //Loop over edges
+    for(GModel::eiter it = m->firstEdge(); it != m->lastEdge(); ++it)
     {
-        posI << i+1 << " " << u[i].imag() << std::endl;
+        GEdge *e = *it;
+        
+        for(unsigned int i = 0; i < e->lines.size(); i++)
+        {
+            pos << "SL(" << e->lines[i]->getVertex(0)->x() << ","  << e->lines[i]->getVertex(0)->y() << ","  << e->lines[i]->getVertex(0)->z() << "," << e->lines[i]->getVertex(1)->x() << ","  << e->lines[i]->getVertex(1)->y() << ","  << e->lines[i]->getVertex(1)->z() << "){" << u[e->lines[i]->getVertex(0)->getNum()-1].real() << "," << u[e->lines[i]->getVertex(1)->getNum()-1].real() << "," << u[e->lines[i]->getVertex(0)->getNum()-1].imag() << "," << u[e->lines[i]->getVertex(1)->getNum()-1].imag() << "};" << std::endl;
+        }
     }
-    posI << "$EndNodeData" << std::endl;
     
-    posI.close();
+    pos << "};" << std::endl;
+    
+    pos.close();
 }
 
 Param readParam(int argc, char **argv)

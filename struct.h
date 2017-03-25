@@ -1,6 +1,8 @@
 #ifndef struct_h
 #define struct_h
 
+#include <complex>
+
 typedef struct Param{
     double k_0;
     double k_1;
