@@ -1,6 +1,7 @@
 #include <cmath>
 
 #include "analytical.h"
+#include "MPoint.h"
 
 using namespace std;
 
@@ -11,7 +12,7 @@ std::vector< std::complex<double> > ANALYTICAL::solve(GModel* m, int nbNodes, Pa
     const double k1 = param.k_0;
     const double k2 = param.k_1;
     const double a = param.x_bnd;
-    const double L = m->getMeshVertexByTag(physical.tagInf[0])->x();
+    const double L = m->getMeshVertexByTag(static_cast<GVertex*>(physical.elmInf[0])->points[0]->getVertex(0)->getNum()-1)->x();
     complex<double> U = param.wave;
     
     const double Ar = -(k2*k2*sin(2*a*k1)*U.real() - k1*k1*sin(2*a*k1)*U.real() + 2*k1*k2*U.imag())/(k1*k1*cos(2*a*k1) - k2*k2*cos(2*a*k1) + k1*k1 + k2*k2);

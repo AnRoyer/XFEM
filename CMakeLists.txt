@@ -12,7 +12,6 @@ include_directories(include/gmm)
 link_directories(lib)
 set(EXECUTABLE_OUTPUT_PATH ../bin)
 
-
 add_executable(xfem ${FILES})
 
-target_link_libraries(xfem Gmsh lapack blas)
+target_link_libraries(xfem Gmsh blas lapack)

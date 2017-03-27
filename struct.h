@@ -2,6 +2,8 @@
 #define struct_h
 
 #include <complex>
+#include <vector>
+#include "GEntity.h"
 
 typedef struct Param{
     double k_0;
@@ -12,7 +14,7 @@ typedef struct Param{
 
 typedef struct Physical{
     std::vector<int> tagDir;
-    std::vector<int> tagInf;
+    std::vector<GEntity*> elmInf;
 }Physical;
 
 #endif /* struct_h */

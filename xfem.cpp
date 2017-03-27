@@ -38,10 +38,7 @@ std::vector< std::complex<double> > XFEM::solve(GModel* m, int nbNodes, Param pa
         q[physical.tagDir[i]-1] = param.wave;
     }
     
-    for(unsigned int i = 0; i < physical.tagInf.size(); i++)
-    {
-        Ktmp(physical.tagInf[i]-1, physical.tagInf[i]-1) += std::complex<double>(0.0, -param.k_1);//Sommerfeld radiation condition
-    }
+    sommerfeldCondition(Ktmp, physical.elmInf, m->getDim(), param.k_1);
     
     gmm::copy(Ktmp,K);
     
@@ -80,7 +77,7 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
             double x0 = line->getVertex(0)->x();
             double x1 = line->getVertex(1)->x();
             
-            double J = jacobian1D(line);
+            gmm::dense_matrix<double> J = jacobianVol(line, 1);
             
             if(x0 < param.x_bnd && x1 > param.x_bnd)
             {
@@ -88,21 +85,21 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
                 gmm::dense_matrix<double> Ke(4,4);
                 gmm::dense_matrix<double> Me(4,4);
                 
-                setLsu(0, (param.x_bnd-x0)/J);
-                setLsu(1, (param.x_bnd-x1)/J);
+                setLsu(0, (param.x_bnd-x0)/J(0,0));
+                setLsu(1, (param.x_bnd-x1)/J(0,0));
                 
                 for(unsigned int i = 0; i < 4; i++)//i = 2, i = 3 -> enrichment
                 {
                     for(unsigned int j = 0; j < 4; j++)//j = 2, j = 3 -> enrichment
                     {
-                        Ke(i,j) = integraleK(1, i, j, 4)/J;
+                        Ke(i,j) = integraleK(1, i, j, 4, J);
                         if(i == 0 || i == 2)
                         {
-                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 4)*J;
+                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 4, J);
                         }
                         else if(i == 1 || i == 3)
                         {
-                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 4)*J;
+                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 4, J);
                         }
                     }
                 }
@@ -137,14 +134,14 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
                 {
                     for(unsigned int j = 0; j < 2; j++)
                     {
-                        Ke(i,j) = integraleK(1, i, j, 3)/J;
+                        Ke(i,j) = integraleK(1, i, j, 3, J);
                         if(x0 < param.x_bnd && x1 <= param.x_bnd)
                         {
-                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 3)*J;
+                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 3, J);
                         }
                         else if(x0 >= param.x_bnd && x1 > param.x_bnd)
                         {
-                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 3)*J;
+                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 3, J);
                         }
                     }
                 }

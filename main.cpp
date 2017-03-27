@@ -8,6 +8,8 @@
 #include "GModel.h"
 #include "MElement.h"
 #include "MPoint.h"
+#include "MLine.h"
+#include "MTriangle.h"
 #include "MVertex.h"
 
 #include "analytical.h"
@@ -89,6 +91,11 @@ int main(int argc, char **argv)
     else if(dim == 2)
     {
         std::cout << "2D analysis..." << std::endl;
+        
+        std::cout << "### FEM ###" << std::endl;
+        std::cout << "-> u" << std::endl;
+        std::vector< std::complex<double> > uFEM = FEM::solve(m, nbNodes, param, physical);
+        writePOS(m, uFEM, "uFEM");
     }
 
     
@@ -102,6 +109,7 @@ void writePOS(GModel* m, std::vector< std::complex<double> > u, std::string name
     std::ofstream pos(name + ".pos", std::ofstream::trunc);
     
     pos << "View \"" << name << "\" {" << std::endl;
+    pos << "TIME{0,0};" << std::endl;
     
     //Loop over vertices
     for(GModel::viter it = m->firstVertex(); it != m->lastVertex(); ++it)
@@ -114,14 +122,52 @@ void writePOS(GModel* m, std::vector< std::complex<double> > u, std::string name
         }
     }
     
-    //Loop over edges
-    for(GModel::eiter it = m->firstEdge(); it != m->lastEdge(); ++it)
+    if(m->getDim() == 1)
     {
-        GEdge *e = *it;
-        
-        for(unsigned int i = 0; i < e->lines.size(); i++)
+        //Loop over edges
+        for(GModel::eiter it = m->firstEdge(); it != m->lastEdge(); ++it)
         {
-            pos << "SL(" << e->lines[i]->getVertex(0)->x() << ","  << e->lines[i]->getVertex(0)->y() << ","  << e->lines[i]->getVertex(0)->z() << "," << e->lines[i]->getVertex(1)->x() << ","  << e->lines[i]->getVertex(1)->y() << ","  << e->lines[i]->getVertex(1)->z() << "){" << u[e->lines[i]->getVertex(0)->getNum()-1].real() << "," << u[e->lines[i]->getVertex(1)->getNum()-1].real() << "," << u[e->lines[i]->getVertex(0)->getNum()-1].imag() << "," << u[e->lines[i]->getVertex(1)->getNum()-1].imag() << "};" << std::endl;
+            GEdge *e = *it;
+        
+            for(unsigned int i = 0; i < e->lines.size(); i++)
+            {
+                pos << "SL(" << e->lines[i]->getVertex(0)->x() << ","  << e->lines[i]->getVertex(0)->y() << ","  << e->lines[i]->getVertex(0)->z() << "," << e->lines[i]->getVertex(1)->x() << ","  << e->lines[i]->getVertex(1)->y() << ","  << e->lines[i]->getVertex(1)->z() << "){" << u[e->lines[i]->getVertex(0)->getNum()-1].real() << "," << u[e->lines[i]->getVertex(1)->getNum()-1].real() << "," << u[e->lines[i]->getVertex(0)->getNum()-1].imag() << "," << u[e->lines[i]->getVertex(1)->getNum()-1].imag() << "};" << std::endl;
+            }
+        }
+    }
+    else if(m->getDim() == 2)
+    {
+        //Loop over faces
+        for(GModel::fiter it = m->firstFace(); it != m->lastFace(); ++it)
+        {
+            GFace *f = *it;
+        
+            for(unsigned int i = 0; i < f->triangles.size(); i++)
+            {
+                pos << "ST(";
+                for(unsigned int j = 0; j < f->triangles[i]->getNumVertices(); j++)
+                {
+                    pos << f->triangles[i]->getVertex(j)->x() << "," << f->triangles[i]->getVertex(j)->y() << "," << f->triangles[i]->getVertex(j)->z();
+                    if(j != f->triangles[i]->getNumVertices()-1)
+                    {
+                        pos << ",";
+                    }
+                }
+                pos << "){";
+                for(unsigned int j = 0; j < f->triangles[i]->getNumVertices(); j++)
+                {
+                    pos << u[f->triangles[i]->getVertex(j)->getNum()-1].real() << ",";
+                }
+                for(unsigned int j = 0; j < f->triangles[i]->getNumVertices(); j++)
+                {
+                    pos << u[f->triangles[i]->getVertex(j)->getNum()-1].imag();
+                    if(j != f->triangles[i]->getNumVertices()-1)
+                    {
+                        pos << ",";
+                    }
+                }
+                pos << "};" << std::endl;
+            }
         }
     }
     
@@ -217,11 +263,7 @@ Physical checkPhysical(GModel *m)
             }
             else if(physicals[i] == GAMMAINF)
             {
-                std::vector<MVertex*> vertices = e->mesh_vertices;
-                for(unsigned int j = 0; j < vertices.size(); j++)
-                {
-                    phy.tagInf.push_back(vertices[j]->getNum());
-                }
+                phy.elmInf.push_back(e);
             }
         }
     }
@@ -245,11 +287,7 @@ Physical checkPhysical(GModel *m)
             }
             else if(physicals[i] == GAMMAINF)
             {
-                std::vector<MVertex*> vertices = v->mesh_vertices;
-                for(unsigned int j = 0; j < vertices.size(); j++)
-                {
-                    phy.tagInf.push_back(vertices[j]->getNum());
-                }
+                phy.elmInf.push_back(v);
             }
         }
         
