@@ -105,7 +105,7 @@ std::vector<double> BFgrad_order1(unsigned int dim, unsigned int num, double u, 
     switch (dim) {
         case 0:
             /*
-             *  grad(phi_0) = 0;
+             *  phi_0 = 1;
              */
             switch (num) {
                 case 0:
@@ -117,8 +117,8 @@ std::vector<double> BFgrad_order1(unsigned int dim, unsigned int num, double u, 
             break;
         case 1:
             /*
-             *  grad(phi_0) = -1/2;
-             *  grad(phi_1) = 1/2;
+             *  phi_0 = (1-u)/2;
+             *  phi_1 = (1+u)/2;
              *
              *  -|---------|---------|-->u
              *   -1        0         1
@@ -183,7 +183,7 @@ std::vector<double> BFEgrad_order1(unsigned int dim, unsigned int num, double u,
     
     for(unsigned int i = 0; i < 2; i++)
     {
-        value[i] = F_enrichment(dim, u, v)*BFgrad[i] + BF_order1(dim, num, u, v)*Fgrad[i];
+        value[i] = F_enrichment(dim, u, v)*BFgrad[i] + Fgrad[i]*BF_order1(dim, num, u, v);
     }
     
     return value;
@@ -195,7 +195,7 @@ void setLsu(int num, double value)
     lsu[num] = value;
 }
 
-//Enrichment function : sum_i(|ls_i|N_i(x)) - |sum_i(ls_i*N_i(x)|
+//Enrichment function : sum_i(|ls_i|N_i(x)) - |sum_i(ls_i*N_i(x))|
 double F_enrichment(unsigned int dim, double u, double v)
 {
     double value = 0.;
@@ -220,6 +220,7 @@ std::vector<double> Fgrad_enrichment(unsigned int dim, double u, double v)
     
     std::vector<double> term1(2, 0.);
     std::vector<double> term2(2, 0.);
+    double signTerm2 = 0.;
     
     for(unsigned int i = 0; i < dim+1; i++)
     {
@@ -229,11 +230,18 @@ std::vector<double> Fgrad_enrichment(unsigned int dim, double u, double v)
         term1[1] += std::abs(lsu[i])*BFgrad[1];
         term2[0] += lsu[i]*BFgrad[0];
         term2[1] += lsu[i]*BFgrad[1];
+        signTerm2 += lsu[i]*BF_order1(dim, i, u);
     }
     
-    for(unsigned int i = 0; i < dim; i++)
+    if(signTerm2 < 0)
     {
-        value[i] = term1[i] - std::abs(term2[i]);
+        term2[0] = -term2[0];
+        term2[1] = -term2[1];
+    }
+    
+    for(unsigned int i = 0; i < dim+1; i++)
+    {
+        value[i] = term1[i] - term2[i];
     }
     
     return value;
@@ -441,21 +449,21 @@ double integraleK(unsigned int dim, unsigned int i, unsigned int j, unsigned int
                                 std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx4[k]));
                                 std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx4[k]));
                                 
-                                value += lp2[k]*(BFEgradI[0]*BFgradJ[0]+BFEgradI[1]*BFgradJ[1])*std::abs(detJ);
+                                value += lp4[k]*(BFEgradI[0]*BFgradJ[0]+BFEgradI[1]*BFgradJ[1])*std::abs(detJ);
                             }
                             else if(j >= 2 && i < 2)
                             {
                                 std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx4[k]));
                                 std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx4[k]));
                                 
-                                value += lp2[k]*(BFgradI[0]*BFEgradJ[0]+BFgradI[1]*BFEgradJ[1])*std::abs(detJ);
+                                value += lp4[k]*(BFgradI[0]*BFEgradJ[0]+BFgradI[1]*BFEgradJ[1])*std::abs(detJ);
                             }
                             else
                             {
                                 std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx4[k]));
                                 std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx4[k]));
                                 
-                                value += lp2[k]*(BFEgradI[0]*BFEgradJ[0]+BFEgradI[1]*BFEgradJ[1])*std::abs(detJ);
+                                value += lp4[k]*(BFEgradI[0]*BFEgradJ[0]+BFEgradI[1]*BFEgradJ[1])*std::abs(detJ);
                             }
                         }
                         else
@@ -463,7 +471,7 @@ double integraleK(unsigned int dim, unsigned int i, unsigned int j, unsigned int
                             std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx4[k]));
                             std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx4[k]));
                             
-                            value += lp2[k]*(BFgradI[0]*BFgradJ[0]+BFgradI[1]*BFgradJ[1])*std::abs(detJ);
+                            value += lp4[k]*(BFgradI[0]*BFgradJ[0]+BFgradI[1]*BFgradJ[1])*std::abs(detJ);
                         }
                     }
                     break;

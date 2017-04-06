@@ -42,14 +42,9 @@ std::vector< std::complex<double> > XFEM::solve(GModel* m, int nbNodes, Param pa
     
     gmm::copy(Ktmp,K);
     
-    /*for(unsigned int i = 0; i < nbNodes+2; i++)
-     {
-     for(unsigned int j = 0; j < nbNodes+2; j++)
-     {
-     std::cout << K(i,j) << " ";
-     }
-     std::cout << std::endl;
-     }*/
+    gmm::dense_matrix< std::complex<double> > Kprint(nbNodes+2, nbNodes+2);
+    gmm::copy(Ktmp,Kprint);
+    std::cout << Kprint << std::endl;
     
     //solver
     gmm::lu_solve(K, u, q);
@@ -92,14 +87,14 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
                 {
                     for(unsigned int j = 0; j < 4; j++)//j = 2, j = 3 -> enrichment
                     {
-                        Ke(i,j) = integraleK(1, i, j, 4, J);
+                        Ke(i,j) = integraleK(1, i, j, 3, J);
                         if(i == 0 || i == 2)
                         {
-                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 4, J);
+                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 3, J);
                         }
                         else if(i == 1 || i == 3)
                         {
-                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 4, J);
+                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 3, J);
                         }
                     }
                 }

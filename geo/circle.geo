@@ -1,5 +1,5 @@
 // Gmsh project created on Sun Mar 26 11:44:28 2017
-meshSize = 3;
+meshSize = 12;
 Include "line.dat";
 //+
 Point(1) = {0, 0, 0, 1.0};
@@ -50,4 +50,4 @@ Physical Surface(OMEGA) = {11};
 //+
 Transfinite Line {2, 1, 3, 4} = meshSize Using Progression 1;
 //+
-Transfinite Line {6, 5, 8, 7} = meshSize+1 Using Progression 1;
+Transfinite Line {6, 5, 8, 7} = 5*meshSize Using Progression 1;

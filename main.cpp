@@ -17,6 +17,8 @@
 #include "xfem.h"
 #include "error.h"
 
+#include "computationTools.h"
+
 #define GAMMADIR 1
 #define GAMMAINF 2
 #define OMEGA 3
@@ -59,6 +61,20 @@ int main(int argc, char **argv)
     int dim = m->getDim();
     int nbNodes = m->getNumMeshVertices();
     
+    //*************************************************************************
+    
+    
+    /*
+    setLsu(0, 1);
+    setLsu(1, -1);
+    for(unsigned int i = 0; i < 11; i++)
+    {
+        double u = i*(2./10.) - 1.;
+        std::vector<double> Fgrad = Fgrad_enrichment(1, u);
+        std::cout << "u = " << u << " -> " << F_enrichment(1, u) << " : " << Fgrad[0] << std::endl;
+    }
+    */
+    
     if(dim == 1)
     {
         std::cout << "1D analysis..." << std::endl;
@@ -97,7 +113,6 @@ int main(int argc, char **argv)
         std::vector< std::complex<double> > uFEM = FEM::solve(m, nbNodes, param, physical);
         writePOS(m, uFEM, "uFEM");
     }
-
     
     delete m;
     GmshFinalize();

@@ -30,6 +30,10 @@ std::vector< std::complex<double> > FEM::solve(GModel* m, int nbNodes, Param par
         computeK(Ktmp, m->firstFace(), m->lastFace(), nbNodes, param);
     }
     
+    gmm::dense_matrix< std::complex<double> > Kprint(nbNodes, nbNodes);
+    gmm::copy(Ktmp,Kprint);
+    std::cout << Kprint << std::endl;
+    
     //q vector
     std::vector< std::complex<double> > q(nbNodes, std::complex<double>(0,0));
     
@@ -49,9 +53,9 @@ std::vector< std::complex<double> > FEM::solve(GModel* m, int nbNodes, Param par
     
     gmm::copy(Ktmp,K);
     
-    gmm::dense_matrix< std::complex<double> > Kprint(nbNodes, nbNodes);
+    /*gmm::dense_matrix< std::complex<double> > Kprint(nbNodes, nbNodes);
     gmm::copy(Ktmp,Kprint);
-    std::cout << Kprint << std::endl;
+    std::cout << Kprint << std::endl;*/
 
     
     //solver
