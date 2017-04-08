@@ -49,33 +49,41 @@ std::vector< std::complex<double> > ANALYTICAL::solve(GModel* m, int nbNodes, Pa
     
     const double k1 = param.k_0;
     const double k2 = param.k_1;
+    const double Z1 = 1./param.k_0;
+    const double Z2 = 1./param.k_1;
     const double a = param.x_bnd;
-    const double L = m->getMeshVertexByTag(static_cast<GVertex*>(physical.elmInf[0])->points[0]->getVertex(0)->getNum()-1)->x();
     complex<double> U = param.wave;
     
     complex<double> e_ik1 = exp(complex<double>(0., -k1*a));
-    complex<double> eik1 = exp(complex<double>(0., k1*a));
+    complex<double> e_2ik1 = exp(complex<double>(0., -2*k1*a));
     complex<double> e_ik2 = exp(complex<double>(0., -k2*a));
     
-    complex<double> A = U*(k2-k1)/(2*k1);
     
-    complex<double> B = U*(k2+k1)/(2*k1);
+    complex<double> A = U/((Z2-Z1)/(Z1+Z2) * e_2ik1 + 1.);
+    
+    complex<double> B = U - A;
     
     complex<double> C = 0.;
     
-    complex<double> D = (A*eik1 + B*e_ik1)/e_ik2;
+    complex<double> D = 2*Z2/(Z1+Z2) * A * e_ik1 / e_ik2;
     
     for(unsigned int i = 0; i < nbNodes; i++)
     {
         double x = m->getMeshVertexByTag(i+1)->x();
         if(x <= a)
         {
-            u[i] = A*exp(complex<double>(0., k1*x)) + B*exp(complex<double>(0., -k1*x));
+            u[i] = A*exp(complex<double>(0., -k1*x)) + B*exp(complex<double>(0., k1*x));
         }
         else
         {
             u[i] = C*exp(complex<double>(0., k2*x)) + D*exp(complex<double>(0., -k2*x));
         }
+    }
+    
+    //Let's take the conjugate to have a wave that propagate in the same direction.
+    for(unsigned int i = 0; i < nbNodes; i++)
+    {
+        u[i] = conj(u[i]);
     }
     
     return u;

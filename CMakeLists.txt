@@ -4,7 +4,9 @@ project(xfem)
 
 file(GLOB FILES *.cpp)
 
-ADD_DEFINITIONS(-openmp)
+find_package(LAPACK REQUIRED)   
+
+add_definitions(-DGMM_USES_LAPACK)
 
 include_directories(include/gmsh)
 include_directories(include/gmm)
@@ -14,4 +16,4 @@ set(EXECUTABLE_OUTPUT_PATH ../bin)
 
 add_executable(xfem ${FILES})
 
-target_link_libraries(xfem Gmsh blas lapack)
+target_link_libraries(xfem Gmsh ${LAPACK_LIBRARIES} )

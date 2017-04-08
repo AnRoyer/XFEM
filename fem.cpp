@@ -1,4 +1,5 @@
 #include <iostream>
+#include "gmm_iter_solvers.h"
 
 #include "fem.h"
 #include "computationTools.h"
@@ -29,11 +30,11 @@ std::vector< std::complex<double> > FEM::solve(GModel* m, int nbNodes, Param par
     {
         computeK(Ktmp, m->firstFace(), m->lastFace(), nbNodes, param);
     }
-    
+    /*
     gmm::dense_matrix< std::complex<double> > Kprint(nbNodes, nbNodes);
     gmm::copy(Ktmp,Kprint);
     std::cout << Kprint << std::endl;
-    
+    */
     //q vector
     std::vector< std::complex<double> > q(nbNodes, std::complex<double>(0,0));
     
@@ -53,13 +54,20 @@ std::vector< std::complex<double> > FEM::solve(GModel* m, int nbNodes, Param par
     
     gmm::copy(Ktmp,K);
     
-    /*gmm::dense_matrix< std::complex<double> > Kprint(nbNodes, nbNodes);
-    gmm::copy(Ktmp,Kprint);
-    std::cout << Kprint << std::endl;*/
-
-    
     //solver
-    gmm::lu_solve(K, u, q);
+    if(m->getDim() == 1)
+    {
+        gmm::lu_solve(K, u, q);
+    }
+    else
+    {
+        gmm::identity_matrix PR;   // Optional scalar product for cg
+        gmm::iteration iter(10E-6);// Iteration object with the max residu
+        size_t restart = 50;
+        gmm::ilu_precond<gmm::row_matrix< gmm::wsvector< std::complex<double> > > > P(Ktmp);
+        gmm::gmres(Ktmp, u, q, PR, restart, iter);
+    }
+    
     
     return u;
 }
@@ -74,8 +82,9 @@ void FEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktm
             int nbN0 = line->getVertex(0)->getNum()-1;
             int nbN1 = line->getVertex(1)->getNum()-1;
             
-            double x0 = line->getVertex(0)->x();
-            double x1 = line->getVertex(1)->x();
+            double x[2];
+            x[0] = line->getVertex(0)->x();
+            x[1] = line->getVertex(1)->x();
             
             gmm::dense_matrix<double> Ke(2,2);
             gmm::dense_matrix<double> Me(2,2);
@@ -87,28 +96,29 @@ void FEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktm
                 for(unsigned int j = 0; j < 2; j++)
                 {
                     Ke(i,j) = integraleK(1, i, j, 3, J);
-                    if(x0 < param.x_bnd && x1 > param.x_bnd)
+                    
+                    if(x[i] < param.x_bnd)
                     {
-                        if(i == 0)
+                        Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 3, J);
+                    }
+                    else if(x[i] > param.x_bnd)
+                    {
+                        Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 3, J);
+                    }
+                    else
+                    {
+                        if(x[1-i] < param.x_bnd)
                         {
                             Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 3, J);
                         }
-                        else if(i == 1)
+                        else
                         {
                             Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 3, J);
                         }
                     }
-                    else if(x0 < param.x_bnd && x1 <= param.x_bnd)
-                    {
-                        Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 3, J);
-                    }
-                    else if(x0 >= param.x_bnd && x1 > param.x_bnd)
-                    {
-                        Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 3, J);
-                    }
                 }
             }
-            
+
             Ktmp(nbN0, nbN0) += Ke(0,0) + Me(0,0);
             Ktmp(nbN0, nbN1) += Ke(0,1) + Me(0,1);
             Ktmp(nbN1, nbN0) += Ke(1,0) + Me(1,0);
@@ -133,6 +143,16 @@ void FEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktm
             x[1] = triangle->getVertex(1)->x();
             x[2] = triangle->getVertex(2)->x();
             
+            double y[3];
+            y[0] = triangle->getVertex(0)->y();
+            y[1] = triangle->getVertex(1)->y();
+            y[2] = triangle->getVertex(2)->y();
+            
+            double r[3];
+            r[0] = std::sqrt(x[0]*x[0] + y[0]*y[0]);
+            r[1] = std::sqrt(x[1]*x[1] + y[1]*y[1]);
+            r[2] = std::sqrt(x[2]*x[2] + y[0]*y[2]);
+            
             gmm::dense_matrix<double> Ke(3,3);
             gmm::dense_matrix<double> Me(3,3);
             
@@ -143,13 +163,25 @@ void FEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktm
                 for(unsigned int j = 0; j < 3; j++)
                 {
                     Ke(i,j) = integraleK(2, i, j, 7, J);
-                    if(x[i] <= param.x_bnd)
+                    
+                    if(r[i] < param.x_bnd)
                     {
                         Me(i,j) = - param.k_0*param.k_0*integraleM(2, i, j, 7, J);
                     }
-                    else
+                    else if(r[i] > param.x_bnd)
                     {
                         Me(i,j) = - param.k_1*param.k_1*integraleM(2, i, j, 7, J);
+                    }
+                    else
+                    {
+                        if(r[2-i] < param.x_bnd)
+                        {
+                            Me(i,j) = - param.k_0*param.k_0*integraleM(2, i, j, 7, J);
+                        }
+                        else
+                        {
+                            Me(i,j) = - param.k_1*param.k_1*integraleM(2, i, j, 7, J);
+                        }
                     }
                 }
             }

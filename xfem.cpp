@@ -22,6 +22,11 @@ std::vector< std::complex<double> > XFEM::solve(GModel* m, int nbNodes, Param pa
     std::vector< std::complex<double> > u(nbNodes+2);
     
     computeK(Ktmp, m->firstEdge(), m->lastEdge(), nbNodes, param);
+    /*
+    gmm::dense_matrix< std::complex<double> > Kprint(nbNodes+2, nbNodes+2);
+    gmm::copy(Ktmp,Kprint);
+    std::cout << Kprint << std::endl;
+    */
     
     //q vector
     std::vector< std::complex<double> > q(nbNodes+2, std::complex<double>(0,0));
@@ -42,10 +47,6 @@ std::vector< std::complex<double> > XFEM::solve(GModel* m, int nbNodes, Param pa
     
     gmm::copy(Ktmp,K);
     
-    gmm::dense_matrix< std::complex<double> > Kprint(nbNodes+2, nbNodes+2);
-    gmm::copy(Ktmp,Kprint);
-    std::cout << Kprint << std::endl;
-    
     //solver
     gmm::lu_solve(K, u, q);
     
@@ -54,6 +55,8 @@ std::vector< std::complex<double> > XFEM::solve(GModel* m, int nbNodes, Param pa
     {
         uRed[i] = u[i];
     }
+    
+    std::cout << "Unused dof: " << u[nbNodes] << ", " << u[nbNodes+1] << std::endl;
     
     
     return uRed;
@@ -69,32 +72,34 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
             int nbN0 = line->getVertex(0)->getNum()-1;
             int nbN1 = line->getVertex(1)->getNum()-1;
             
-            double x0 = line->getVertex(0)->x();
-            double x1 = line->getVertex(1)->x();
+            double x[2];
+            x[0] = line->getVertex(0)->x();
+            x[1] = line->getVertex(1)->x();
             
             gmm::dense_matrix<double> J = jacobianVol(line, 1);
             
-            if(x0 < param.x_bnd && x1 > param.x_bnd)
+            if(x[0] < param.x_bnd && x[1] > param.x_bnd)
             {
                 //Real XFEM case
                 gmm::dense_matrix<double> Ke(4,4);
                 gmm::dense_matrix<double> Me(4,4);
                 
-                setLsu(0, (param.x_bnd-x0)/J(0,0));
-                setLsu(1, (param.x_bnd-x1)/J(0,0));
+                setLsu(0, (param.x_bnd-x[0])/J(0,0));
+                setLsu(1, (param.x_bnd-x[1])/J(0,0));
                 
                 for(unsigned int i = 0; i < 4; i++)//i = 2, i = 3 -> enrichment
                 {
                     for(unsigned int j = 0; j < 4; j++)//j = 2, j = 3 -> enrichment
                     {
-                        Ke(i,j) = integraleK(1, i, j, 3, J);
+                        //Better to use an even number of intergration points to avoid the point x=0 where the deriative is not defined
+                        Ke(i,j) = integraleK(1, i, j, 20, J);
                         if(i == 0 || i == 2)
                         {
-                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 3, J);
+                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 20, J);
                         }
                         else if(i == 1 || i == 3)
                         {
-                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 3, J);
+                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 20, J);
                         }
                     }
                 }
@@ -129,14 +134,26 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
                 {
                     for(unsigned int j = 0; j < 2; j++)
                     {
-                        Ke(i,j) = integraleK(1, i, j, 3, J);
-                        if(x0 < param.x_bnd && x1 <= param.x_bnd)
+                        Ke(i,j) = integraleK(1, i, j, 4, J);
+                        
+                        if(x[i] < param.x_bnd)
                         {
-                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 3, J);
+                            Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 4, J);
                         }
-                        else if(x0 >= param.x_bnd && x1 > param.x_bnd)
+                        else if(x[i] > param.x_bnd)
                         {
-                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 3, J);
+                            Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 4, J);
+                        }
+                        else
+                        {
+                            if(x[1-i] < param.x_bnd)
+                            {
+                                Me(i,j) = - param.k_0*param.k_0*integraleM(1, i, j, 4, J);
+                            }
+                            else
+                            {
+                                Me(i,j) = - param.k_1*param.k_1*integraleM(1, i, j, 4, J);
+                            }
                         }
                     }
                 }
@@ -147,6 +164,16 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
                 Ktmp(nbN1, nbN1) += Ke(1,1) + Me(1,1);
             }
         }
+    }
+    
+    if(Ktmp(nbNodes, nbNodes) == 0.)
+    {
+        Ktmp(nbNodes, nbNodes) = 1.;
+    }
+    
+    if(Ktmp(nbNodes+1, nbNodes+1) == 0.)
+    {
+        Ktmp(nbNodes+1, nbNodes+1) = 1.;
     }
 }
 

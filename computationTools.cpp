@@ -175,6 +175,15 @@ std::vector<double> BFgrad_order1(unsigned int dim, unsigned int num, double u, 
     return value;
 }
 
+double BFE_order1(unsigned int dim, unsigned int num, double u, double v)
+{
+    double value = 0.;
+    
+    value = F_enrichment(dim, u, v)*BF_order1(dim, num, u, v);
+    
+    return value;
+}
+
 std::vector<double> BFEgrad_order1(unsigned int dim, unsigned int num, double u, double v)
 {
     std::vector<double> value(2,0.);
@@ -330,153 +339,85 @@ double integraleK(unsigned int dim, unsigned int i, unsigned int j, unsigned int
             }
             break;
         case 1:
-            switch (nbPoint) {
-                case 1:
-                    for(unsigned int k = 0; k < 1; k++)
+            {
+                std::vector<double*> lx;
+                lx.push_back(lx1);
+                lx.push_back(lx2);
+                lx.push_back(lx3);
+                lx.push_back(lx4);
+                lx.push_back(lx5);
+                lx.push_back(lx6);
+                lx.push_back(lx7);
+                lx.push_back(lx8);
+                lx.push_back(lx9);
+                lx.push_back(lx10);
+                lx.push_back(lx11);
+                lx.push_back(lx12);
+                lx.push_back(lx13);
+                lx.push_back(lx14);
+                lx.push_back(lx15);
+                lx.push_back(lx16);
+                lx.push_back(lx17);
+                lx.push_back(lx18);
+                lx.push_back(lx19);
+                lx.push_back(lx20);
+                
+                std::vector<double*> lp;
+                lp.push_back(lp1);
+                lp.push_back(lp2);
+                lp.push_back(lp3);
+                lp.push_back(lp4);
+                lp.push_back(lp5);
+                lp.push_back(lp6);
+                lp.push_back(lp7);
+                lp.push_back(lp8);
+                lp.push_back(lp9);
+                lp.push_back(lp10);
+                lp.push_back(lp11);
+                lp.push_back(lp12);
+                lp.push_back(lp13);
+                lp.push_back(lp14);
+                lp.push_back(lp15);
+                lp.push_back(lp16);
+                lp.push_back(lp17);
+                lp.push_back(lp18);
+                lp.push_back(lp19);
+                lp.push_back(lp20);
+                
+                for(unsigned int k = 0; k < nbPoint; k++)
+                {
+                    if(i >= 2 || j >= 2)
                     {
-                        if(i >= 2 || j >= 2)
+                        if(i >= 2 && j < 2)
                         {
-                            if(i >= 2 && j < 2)
-                            {
-                                std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx1[k]));
-                                std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx1[k]));
-                                
-                                value += lp1[k]*(BFEgradI[0]*BFgradJ[0]+BFEgradI[1]*BFgradJ[1])*std::abs(detJ);
-                            }
-                            else if(j >= 2 && i < 2)
-                            {
-                                std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx1[k]));
-                                std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx1[k]));
-                                
-                                value += lp1[k]*(BFgradI[0]*BFEgradJ[0]+BFgradI[1]*BFEgradJ[1])*std::abs(detJ);
-                            }
-                            else
-                            {
-                                std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx1[k]));
-                                std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx1[k]));
-                                
-                                value += lp1[k]*(BFEgradI[0]*BFEgradJ[0]+BFEgradI[1]*BFEgradJ[1])*std::abs(detJ);
-                            }
+                            std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx[nbPoint-1][k]));
+                            std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx[nbPoint-1][k]));
+                            
+                            value += lp[nbPoint-1][k]*(BFEgradI[0]*BFgradJ[0]+BFEgradI[1]*BFgradJ[1])*std::abs(detJ);
+                        }
+                        else if(j >= 2 && i < 2)
+                        {
+                            std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx[nbPoint-1][k]));
+                            std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx[nbPoint-1][k]));
+                            
+                            value += lp[nbPoint-1][k]*(BFgradI[0]*BFEgradJ[0]+BFgradI[1]*BFEgradJ[1])*std::abs(detJ);
                         }
                         else
                         {
-                            std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx1[k]));
-                            std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx1[k]));
+                            std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx[nbPoint-1][k]));
+                            std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx[nbPoint-1][k]));
                             
-                            value += lp1[k]*(BFgradI[0]*BFgradJ[0]+BFgradI[1]*BFgradJ[1])*std::abs(detJ);
+                            value += lp[nbPoint-1][k]*(BFEgradI[0]*BFEgradJ[0]+BFEgradI[1]*BFEgradJ[1])*std::abs(detJ);
                         }
                     }
-                    break;
-                case 2:
-                    for(unsigned int k = 0; k < 2; k++)
+                    else
                     {
-                        if(i >= 2 || j >= 2)
-                        {
-                            if(i >= 2 && j < 2)
-                            {
-                                std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx2[k]));
-                                std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx2[k]));
-                                
-                                value += lp2[k]*(BFEgradI[0]*BFgradJ[0]+BFEgradI[1]*BFgradJ[1])*std::abs(detJ);
-                            }
-                            else if(j >= 2 && i < 2)
-                            {
-                                std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx2[k]));
-                                std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx2[k]));
-                                
-                                value += lp2[k]*(BFgradI[0]*BFEgradJ[0]+BFgradI[1]*BFEgradJ[1])*std::abs(detJ);
-                            }
-                            else
-                            {
-                                std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx2[k]));
-                                std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx2[k]));
-                                
-                                value += lp2[k]*(BFEgradI[0]*BFEgradJ[0]+BFEgradI[1]*BFEgradJ[1])*std::abs(detJ);
-                            }
-                        }
-                        else
-                        {
-                            std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx2[k]));
-                            std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx2[k]));
-                            
-                            value += lp2[k]*(BFgradI[0]*BFgradJ[0]+BFgradI[1]*BFgradJ[1])*std::abs(detJ);
-                        }
+                        std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx[nbPoint-1][k]));
+                        std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx[nbPoint-1][k]));
+                        
+                        value += lp[nbPoint-1][k]*(BFgradI[0]*BFgradJ[0]+BFgradI[1]*BFgradJ[1])*std::abs(detJ);
                     }
-                    break;
-                case 3:
-                    for(unsigned int k = 0; k < 3; k++)
-                    {
-                        if(i >= 2 || j >= 2)
-                        {
-                            if(i >= 2 && j < 2)
-                            {
-                                std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx3[k]));
-                                std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx3[k]));
-                                
-                                value += lp3[k]*(BFEgradI[0]*BFgradJ[0]+BFEgradI[1]*BFgradJ[1])*std::abs(detJ);
-                            }
-                            else if(j >= 2 && i < 2)
-                            {
-                                std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx3[k]));
-                                std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx3[k]));
-                                
-                                value += lp3[k]*(BFgradI[0]*BFEgradJ[0]+BFgradI[1]*BFEgradJ[1])*std::abs(detJ);
-                            }
-                            else
-                            {
-                                std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx3[k]));
-                                std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx3[k]));
-                                
-                                value += lp3[k]*(BFEgradI[0]*BFEgradJ[0]+BFEgradI[1]*BFEgradJ[1])*std::abs(detJ);
-                            }
-                        }
-                        else
-                        {
-                            std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx3[k]));
-                            std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx3[k]));
-                            
-                            value += lp3[k]*(BFgradI[0]*BFgradJ[0]+BFgradI[1]*BFgradJ[1])*std::abs(detJ);
-                        }
-                    }
-                    break;
-                case 4:
-                    for(unsigned int k = 0; k < 4; k++)
-                    {
-                        if(i >= 2 || j >= 2)
-                        {
-                            if(i >= 2 && j < 2)
-                            {
-                                std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx4[k]));
-                                std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx4[k]));
-                                
-                                value += lp4[k]*(BFEgradI[0]*BFgradJ[0]+BFEgradI[1]*BFgradJ[1])*std::abs(detJ);
-                            }
-                            else if(j >= 2 && i < 2)
-                            {
-                                std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx4[k]));
-                                std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx4[k]));
-                                
-                                value += lp4[k]*(BFgradI[0]*BFEgradJ[0]+BFgradI[1]*BFEgradJ[1])*std::abs(detJ);
-                            }
-                            else
-                            {
-                                std::vector<double>BFEgradI = prodMatVec(J, BFEgrad_order1(dim, i-2, lx4[k]));
-                                std::vector<double>BFEgradJ = prodMatVec(J, BFEgrad_order1(dim, j-2, lx4[k]));
-                                
-                                value += lp4[k]*(BFEgradI[0]*BFEgradJ[0]+BFEgradI[1]*BFEgradJ[1])*std::abs(detJ);
-                            }
-                        }
-                        else
-                        {
-                            std::vector<double>BFgradI = prodMatVec(J, BFgrad_order1(dim, i, lx4[k]));
-                            std::vector<double>BFgradJ = prodMatVec(J, BFgrad_order1(dim, j, lx4[k]));
-                            
-                            value += lp4[k]*(BFgradI[0]*BFgradJ[0]+BFgradI[1]*BFgradJ[1])*std::abs(detJ);
-                        }
-                    }
-                    break;
-                default:
-                    break;
+                }
             }
             break;
         case 2:
@@ -547,105 +488,85 @@ double integraleM(unsigned int dim, unsigned int i, unsigned int j, unsigned int
             value += pp1[0]*BF_order1(dim, i, px1[0])*BF_order1(dim, j, px1[0])*std::abs(detJ);
             break;
         case 1:
-            switch (nbPoint) {
-                case 1:
-                    for(unsigned int k = 0; k < 1; k++)
+            {
+                std::vector<double*> lx;
+                lx.push_back(lx1);
+                lx.push_back(lx2);
+                lx.push_back(lx3);
+                lx.push_back(lx4);
+                lx.push_back(lx5);
+                lx.push_back(lx6);
+                lx.push_back(lx7);
+                lx.push_back(lx8);
+                lx.push_back(lx9);
+                lx.push_back(lx10);
+                lx.push_back(lx11);
+                lx.push_back(lx12);
+                lx.push_back(lx13);
+                lx.push_back(lx14);
+                lx.push_back(lx15);
+                lx.push_back(lx16);
+                lx.push_back(lx17);
+                lx.push_back(lx18);
+                lx.push_back(lx19);
+                lx.push_back(lx20);
+                
+                std::vector<double*> lp;
+                lp.push_back(lp1);
+                lp.push_back(lp2);
+                lp.push_back(lp3);
+                lp.push_back(lp4);
+                lp.push_back(lp5);
+                lp.push_back(lp6);
+                lp.push_back(lp7);
+                lp.push_back(lp8);
+                lp.push_back(lp9);
+                lp.push_back(lp10);
+                lp.push_back(lp11);
+                lp.push_back(lp12);
+                lp.push_back(lp13);
+                lp.push_back(lp14);
+                lp.push_back(lp15);
+                lp.push_back(lp16);
+                lp.push_back(lp17);
+                lp.push_back(lp18);
+                lp.push_back(lp19);
+                lp.push_back(lp20);
+                
+                for(unsigned int k = 0; k < nbPoint; k++)
+                {
+                    if(i >= 2 || j >= 2)
                     {
-                        if(i >= 2 || j >= 2)
+                        if(i >= 2 && j < 2)
                         {
-                            if(i >= 2 && j < 2)
-                            {
-                                value += lp1[k]*BF_order1(dim, i-2, lx1[k])*F_enrichment(dim, lx1[k])*BF_order1(dim, j, lx1[k])*std::abs(detJ);
-                            }
-                            else if(j >= 2 && i < 2)
-                            {
-                                value += lp1[k]*BF_order1(dim, i, lx1[k])*BF_order1(dim, j-2, lx1[k])*F_enrichment(dim, lx1[k])*std::abs(detJ);
-                            }
-                            else
-                            {
-                                value += lp1[k]*BF_order1(dim, i-2, lx1[k])*F_enrichment(dim, lx1[k])*BF_order1(dim, j-2, lx1[k])*F_enrichment(dim, lx1[k])*std::abs(detJ);
-                            }
+                            double BFEi = BFE_order1(dim, i-2, lx[nbPoint-1][k]);
+                            double BFj = BF_order1(dim, j, lx[nbPoint-1][k]);
+                            
+                            value += lp[nbPoint-1][k]*BFEi*BFj*std::abs(detJ);
+                        }
+                        else if(j >= 2 && i < 2)
+                        {
+                            double BFi = BF_order1(dim, i, lx[nbPoint-1][k]);
+                            double BFEj = BFE_order1(dim, j-2, lx[nbPoint-1][k]);
+                            
+                            value += lp[nbPoint-1][k]*BFi*BFEj*std::abs(detJ);
                         }
                         else
                         {
-                            value += lp1[k]*BF_order1(dim, i, lx1[k])*BF_order1(dim, j, lx1[k])*std::abs(detJ);
+                            double BFEi = BFE_order1(dim, i-2, lx[nbPoint-1][k]);
+                            double BFEj = BFE_order1(dim, j-2, lx[nbPoint-1][k]);
+                            
+                            value += lp[nbPoint-1][k]*BFEi*BFEj*std::abs(detJ);
                         }
                     }
-                    break;
-                case 2:
-                    for(unsigned int k = 0; k < 2; k++)
+                    else
                     {
-                        if(i >= 2 || j >= 2)
-                        {
-                            if(i >= 2 && j < 2)
-                            {
-                                value += lp2[k]*BF_order1(dim, i-2, lx2[k])*F_enrichment(dim, lx2[k])*BF_order1(dim, j, lx2[k])*std::abs(detJ);
-                            }
-                            else if(j >= 2 && i < 2)
-                            {
-                                value += lp2[k]*BF_order1(dim, i, lx2[k])*BF_order1(dim, j-2, lx2[k])*F_enrichment(dim, lx2[k])*std::abs(detJ);
-                            }
-                            else
-                            {
-                                value += lp2[k]*BF_order1(dim, i-2, lx2[k])*F_enrichment(dim, lx2[k])*BF_order1(dim, j-2, lx2[k])*F_enrichment(dim, lx2[k])*std::abs(detJ);
-                            }
-                        }
-                        else
-                        {
-                            value += lp2[k]*BF_order1(dim, i, lx2[k])*BF_order1(dim, j, lx2[k])*std::abs(detJ);
-                        }
+                        double BFi = BF_order1(dim, i, lx[nbPoint-1][k]);
+                        double BFj = BF_order1(dim, j, lx[nbPoint-1][k]);
+                        
+                        value += lp[nbPoint-1][k]*BFi*BFj*std::abs(detJ);
                     }
-                    break;
-                case 3:
-                    for(unsigned int k = 0; k < 3; k++)
-                    {
-                        if(i >= 2 || j >= 2)
-                        {
-                            if(i >= 2 && j < 2)
-                            {
-                                value += lp3[k]*BF_order1(dim, i-2, lx3[k])*F_enrichment(dim, lx3[k])*BF_order1(dim, j, lx3[k])*std::abs(detJ);
-                            }
-                            else if(j >= 2 && i < 2)
-                            {
-                                value += lp3[k]*BF_order1(dim, i, lx3[k])*BF_order1(dim, j-2, lx3[k])*F_enrichment(dim, lx3[k])*std::abs(detJ);
-                            }
-                            else
-                            {
-                                value += lp3[k]*BF_order1(dim, i-2, lx3[k])*F_enrichment(dim, lx3[k])*BF_order1(dim, j-2, lx3[k])*F_enrichment(dim, lx3[k])*std::abs(detJ);
-                            }
-                        }
-                        else
-                        {
-                            value += lp3[k]*BF_order1(dim, i, lx3[k])*BF_order1(dim, j, lx3[k])*std::abs(detJ);
-                        }
-                    }
-                    break;
-                case 4:
-                    for(unsigned int k = 0; k < 4; k++)
-                    {
-                        if(i >= 2 || j >= 2)
-                        {
-                            if(i >= 2 && j < 2)
-                            {
-                                value += lp4[k]*BF_order1(dim, i-2, lx4[k])*F_enrichment(dim, lx4[k])*BF_order1(dim, j, lx4[k])*std::abs(detJ);
-                            }
-                            else if(j >= 2 && i < 2)
-                            {
-                                value += lp4[k]*BF_order1(dim, i, lx4[k])*BF_order1(dim, j-2, lx4[k])*F_enrichment(dim, lx4[k])*std::abs(detJ);
-                            }
-                            else
-                            {
-                                value += lp4[k]*BF_order1(dim, i-2, lx4[k])*F_enrichment(dim, lx4[k])*BF_order1(dim, j-2, lx4[k])*F_enrichment(dim, lx4[k])*std::abs(detJ);
-                            }
-                        }
-                        else
-                        {
-                            value += lp4[k]*BF_order1(dim, i, lx4[k])*BF_order1(dim, j, lx4[k])*std::abs(detJ);
-                        }
-                    }
-                    break;
-                default:
-                    break;
+                }
             }
             break;
         case 2:

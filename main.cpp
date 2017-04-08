@@ -65,13 +65,14 @@ int main(int argc, char **argv)
     
     
     /*
-    setLsu(0, 1);
-    setLsu(1, -1);
-    for(unsigned int i = 0; i < 11; i++)
+    setLsu(0, 1.5);
+    setLsu(1, -0.5);
+    for(unsigned int i = 0; i < 21; i++)
     {
-        double u = i*(2./10.) - 1.;
-        std::vector<double> Fgrad = Fgrad_enrichment(1, u);
-        std::cout << "u = " << u << " -> " << F_enrichment(1, u) << " : " << Fgrad[0] << std::endl;
+        double u = i*(2./20.) - 1.;
+        std::vector<double> BFEgrad = BFEgrad_order1(1, 0, u);
+        double BFE = BFE_order1(1, 0, u);
+        std::cout << "u = " << u << " -> " << F_enrichment(1, u) << " : " << BFE << std::endl;
     }
     */
     
@@ -112,7 +113,14 @@ int main(int argc, char **argv)
         std::cout << "-> u" << std::endl;
         std::vector< std::complex<double> > uFEM = FEM::solve(m, nbNodes, param, physical);
         writePOS(m, uFEM, "uFEM");
+        /*
+        std::cout << "### XFEM ###" << std::endl;
+        std::cout << "-> u" << std::endl;
+        std::vector< std::complex<double> > uXFEM = XFEM::solve(m, nbNodes, param, physical);
+        writePOS(m, uXFEM, "uXFEM");
+        */
     }
+    
     
     delete m;
     GmshFinalize();
