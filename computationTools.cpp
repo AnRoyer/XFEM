@@ -625,7 +625,7 @@ void sommerfeldCondition(gmm::row_matrix< gmm::wsvector< std::complex<double> > 
                 
                 gmm::dense_matrix<double> J = jacobianSur(point, dim-1);
                 
-                Ktmp(nbN0, nbN0) += std::complex<double>(0., -k*integraleM(dim-1, 0, 0, 1, J));
+                Ktmp(nbN0, nbN0) += std::complex<double>(0., k*integraleM(dim-1, 0, 0, 1, J));
             }
         }
         else if(dim == 2)
@@ -643,7 +643,7 @@ void sommerfeldCondition(gmm::row_matrix< gmm::wsvector< std::complex<double> > 
                 {
                     for(unsigned int j = 0; j < 2; j++)
                     {
-                        Ke(i,j) = -k*integraleM(dim-1, i, j, 3, J);
+                        Ke(i,j) = k*integraleM(dim-1, i, j, 3, J);
                     }
                 }
                 
@@ -658,3 +658,5 @@ void sommerfeldCondition(gmm::row_matrix< gmm::wsvector< std::complex<double> > 
         }
     }
 }
+
+

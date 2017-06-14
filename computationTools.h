@@ -8,6 +8,8 @@
 #include "GEntity.h"
 #include "MElement.h"
 
+#include "struct.h"
+
 std::vector<double> prodMatVec(gmm::dense_matrix<double> &J, std::vector<double> v);
 
 double BF_order1(unsigned int dim, unsigned int num, double u, double v = 0);

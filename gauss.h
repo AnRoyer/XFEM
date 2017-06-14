@@ -1,6 +1,11 @@
 #ifndef gauss_h
 #define gauss_h
 
+/*
+ *  All data come from GetDP software
+ *
+ */
+
 //Point
 
 static double px1[1]={0.0};

@@ -6,7 +6,7 @@
 
 namespace ANALYTICAL {
     
-std::vector< std::complex<double> > solve(GModel* m, int nbNodes, Param param, Physical physical);
+std::vector< std::complex<double> > solve(GModel* m, int nbNodes, Param param, Physical physical, bool xfem);
     
 }
 

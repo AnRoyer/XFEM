@@ -9,9 +9,7 @@
 namespace FEM {
     
 std::vector< std::complex<double> > solve(GModel* m, int nbNodes, Param param, Physical physical);
-void computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktmp, GModel::eiter eBegin, GModel::eiter eEnd, int nbNodes, Param param);
-void computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktmp, GModel::fiter fBegin, GModel::fiter fEnd, int nbNodes, Param param);
-    
+void computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktmp, std::vector<GEntity*> elms, double k, double rho, double c);
 }
 
 
