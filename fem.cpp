@@ -22,7 +22,7 @@ std::vector< std::complex<double> > FEM::solve(GModel* m, int nbNodes, Param par
     std::vector< std::complex<double> > q(nbNodes, std::complex<double>(0,0));
     
     //Boundary conditions
-    sommerfeldCondition(Ktmp, physical.elmInf, m->getDim(), param.rho_2*param.c_2*param.c_2*param.k_2);
+    sommerfeldCondition(Ktmp, physical.elmInf, m->getDim(), 1./param.rho_2*param.k_2);
     for(unsigned int i = 0; i < physical.elmDir.size(); i++)
     {
         for(unsigned int j = 0; j < physical.elmDir[i]->mesh_vertices.size() ; j++)
@@ -70,8 +70,8 @@ void FEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Ktm
                 {
                     for(unsigned int j = 0; j < 2; j++)
                     {
-                        Ke(i,j) = rho*c*c*integraleK(1, i, j, 3, J);
-                        Me(i,j) = - rho*c*c*k*k*integraleM(1, i, j, 3, J);
+                        Ke(i,j) = 1./rho*integraleK(1, i, j, 3, J);
+                        Me(i,j) = - 1./rho*k*k*integraleM(1, i, j, 3, J);
                     }
                 }
 

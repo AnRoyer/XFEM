@@ -1,4 +1,5 @@
 #include <iostream>
+#include <complex>
 
 #include "xfem.h"
 #include "computationTools.h"
@@ -26,13 +27,13 @@ std::vector< std::complex<double> > XFEM::solve(GModel* m, int nbNodes, Param pa
     std::vector< std::complex<double> > q(nbNodes+2, std::complex<double>(0,0));
     
     //Boundary conditions
-    sommerfeldCondition(Ktmp, physical.elmInf, m->getDim(), param.rho_2*param.c_2*param.c_2*param.k_2);
+    sommerfeldCondition(Ktmp, physical.elmInf, m->getDim(), 1./param.rho_2*param.k_2);
     for(unsigned int i = 0; i < physical.elmDir.size(); i++)
     {
         for(unsigned int j = 0; j < physical.elmDir[i]->mesh_vertices.size() ; j++)
         {
             const int tag = physical.elmDir[i]->mesh_vertices[j]->getNum()-1;
-            for(unsigned int k = 0; k < nbNodes; k++)
+            for(unsigned int k = 0; k < nbNodes+2; k++)
             {
                 Ktmp(tag,k) = 0.;
             }
@@ -42,11 +43,14 @@ std::vector< std::complex<double> > XFEM::solve(GModel* m, int nbNodes, Param pa
         }
     }
     
-    //std::cout << Ktmp << std::endl;
-    
     //solver
     gmm::copy(Ktmp,K);
     gmm::lu_solve(K, u, q);
+    
+    for(unsigned int i = 0; i < 2; i++)
+    {
+        std::cout << "enrichment = " << u[nbNodes+i] << std::endl;
+    }
     
     std::vector< std::complex<double> > uRed(nbNodes);
     for(unsigned int i = 0; i < nbNodes; i++)
@@ -88,15 +92,20 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
                         for(unsigned int j = 0; j < 4; j++)//j = 2, j = 3 -> enrichment
                         {
                             //Better to use an even number of intergration points to avoid the point x=0 where the deriative is not defined
-                            if(i == 0 || i == 2)
+                            if(x[i%2] < bnd)
                             {
-                                Ke(i,j) = rho1*c1*c1*integraleK(1, i, j, 20, J);
-                                Me(i,j) = - rho1*c1*c1*k1*k1*integraleM(1, i, j, 20, J);
+                                Ke(i,j) = integraleK(1, i, j, 20, J);
+                                Me(i,j) = - k1*k1*integraleM(1, i, j, 20, J);
                             }
-                            else if(i == 1 || i == 3)
+                            else if(x[i%2] == bnd)
                             {
-                                Ke(i,j) = rho2*c2*c2*integraleK(1, i, j, 20, J);
-                                Me(i,j) = - rho2*c2*c2*k2*k2*integraleM(1, i, j, 20, J);
+                                Ke(i,j) = integraleK(1, i, j, 20, J);
+                                Me(i,j) = - (k1+k2)/2*(k1+k2)/2*integraleM(1, i, j, 20, J);
+                            }
+                            else if(x[i%2] > bnd)
+                            {
+                                Ke(i,j) = integraleK(1, i, j, 20, J);
+                                Me(i,j) = - k2*k2*integraleM(1, i, j, 20, J);
                             }
                         }
                     }
@@ -130,15 +139,15 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
                     {
                         for(unsigned int j = 0; j < 2; j++)
                         {
-                            if(bnd <= x[0] && bnd <= x[1])
+                            if(bnd >= x[0] && bnd >= x[1])
                             {
-                                Ke(i,j) = rho1*c1*c1*integraleK(1, i, j, 3, J);
-                                Me(i,j) = - rho1*c1*c1*k1*k1*integraleM(1, i, j, 3, J);
+                                Ke(i,j) = 1./rho1*integraleK(1, i, j, 3, J);
+                                Me(i,j) = - 1./rho1*k1*k1*integraleM(1, i, j, 3, J);
                             }
-                            else if(bnd >= x[0] && bnd >= x[1])
+                            else if(bnd <= x[0] && bnd <= x[1])
                             {
-                                Ke(i,j) = rho2*c2*c2*integraleK(1, i, j, 3, J);
-                                Me(i,j) = - rho2*c2*c2*k2*k2*integraleM(1, i, j, 3, J);
+                                Ke(i,j) = 1./rho2*integraleK(1, i, j, 3, J);
+                                Me(i,j) = - 1./rho2*k2*k2*integraleM(1, i, j, 3, J);
                             }
                         }
                     }

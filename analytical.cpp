@@ -31,8 +31,8 @@ std::vector< std::complex<double> > ANALYTICAL::solve(GModel* m, int nbNodes, Pa
     complex<double> e_ik2 = exp(complex<double>(0., -k2*a));
     
     //Z_ac = rho * c
-    const double Z1 = param.rho_1*param.c_1;
-    const double Z2 = param.rho_2*param.c_2;
+    const double Z2 = param.rho_1*param.c_1;
+    const double Z1 = param.rho_2*param.c_2;
     
     
     complex<double> A = U/((Z1-Z2)/(Z1+Z2) * e_2ik1 + 1.);

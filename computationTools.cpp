@@ -214,8 +214,8 @@ double F_enrichment(unsigned int dim, double u, double v)
     
     for(unsigned int i = 0; i < dim+1; i++)
     {
-        term1 += std::abs(lsu[i])*BF_order1(dim, i, u);
-        term2 += lsu[i]*BF_order1(dim, i, u);
+        term1 += std::abs(lsu[i])*BF_order1(dim, i, u, v);
+        term2 += lsu[i]*BF_order1(dim, i, u, v);
     }
     
     value = term1 - std::abs(term2);
@@ -233,19 +233,21 @@ std::vector<double> Fgrad_enrichment(unsigned int dim, double u, double v)
     
     for(unsigned int i = 0; i < dim+1; i++)
     {
-        std::vector<double> BFgrad = BFgrad_order1(dim, i, u);
+        std::vector<double> BFgrad = BFgrad_order1(dim, i, u, v);
         
         term1[0] += std::abs(lsu[i])*BFgrad[0];
         term1[1] += std::abs(lsu[i])*BFgrad[1];
         term2[0] += lsu[i]*BFgrad[0];
         term2[1] += lsu[i]*BFgrad[1];
-        signTerm2 += lsu[i]*BF_order1(dim, i, u);
+        signTerm2 += lsu[i]*BF_order1(dim, i, u, v);
     }
     
     if(signTerm2 < 0)
     {
-        term2[0] = -term2[0];
-        term2[1] = -term2[1];
+        for(unsigned int i = 0; i < dim+1; i++)
+        {
+            term2[i] = -term2[i];
+        }
     }
     
     for(unsigned int i = 0; i < dim+1; i++)
