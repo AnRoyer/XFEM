@@ -15,6 +15,7 @@
 #include "analytical.h"
 #include "fem.h"
 #include "xfem.h"
+#include "lagrange.h"
 #include "error.h"
 
 #include "computationTools.h"
@@ -27,6 +28,7 @@
 #define OMEGA 6
 
 void writePOS(GModel* m, std::vector< std::complex<double> > u, std::string name);
+void writeL2Error(std::vector< std::complex<double> > u, std::vector< std::complex<double> > e);
 Param readParam(int argc, char **argv);
 Physical checkPhysical(GModel *m);
 
@@ -71,7 +73,7 @@ int main(int argc, char **argv)
     {
         std::cout << "1D analysis..." << std::endl;
         
-        if(param.xfem == false)
+        if(param.method == Fem)
         {
             std::cout << "### ANALYTICAL ###" << std::endl;
             std::vector< std::complex<double> > uANALYTICAL = ANALYTICAL::solve(m, nbNodes, param, physical, false);
@@ -86,8 +88,10 @@ int main(int argc, char **argv)
             std::vector< std::complex<double> > eFEM = error(uANALYTICAL, uFEM);
             writePOS(m, eFEM, "eFEM");
             std::cout << std::endl;
+            
+            writeL2Error(uFEM, uANALYTICAL);
         }
-        else if(param.xfem == true)
+        else if(param.method == Xfem)
         {
             std::cout << "### ANALYTICAL ###" << std::endl;
             std::vector< std::complex<double> > uANALYTICAL = ANALYTICAL::solve(m, nbNodes, param, physical, true);
@@ -102,6 +106,26 @@ int main(int argc, char **argv)
             std::vector< std::complex<double> > eXFEM = error(uANALYTICAL, uXFEM);
             writePOS(m, eXFEM, "eXFEM");
             std::cout << std::endl;
+            
+            writeL2Error(uXFEM, uANALYTICAL);
+        }
+        else if(param.method == Lagrange)
+        {
+            std::cout << "### ANALYTICAL ###" << std::endl;
+            std::vector< std::complex<double> > uANALYTICAL = ANALYTICAL::solve(m, nbNodes, param, physical, true);
+            writePOS(m, uANALYTICAL, "uANALYTICAL");
+            std::cout << std::endl;
+            
+            std::cout << "### LAGRANGE ###" << std::endl;
+            std::cout << "-> u" << std::endl;
+            std::vector< std::complex<double> > uLAGRANGE = LAGRANGE::solve(m, nbNodes, param, physical);
+            writePOS(m, uLAGRANGE, "uLAGRANGE");
+            std::cout << "-> e" << std::endl;
+            std::vector< std::complex<double> > eLAGRANGE = error(uANALYTICAL, uLAGRANGE);
+            writePOS(m, eLAGRANGE, "eLAGRANGE");
+            std::cout << std::endl;
+            
+            writeL2Error(uLAGRANGE, uANALYTICAL);
         }
     }
     else if(dim == 2)
@@ -192,6 +216,25 @@ void writePOS(GModel* m, std::vector< std::complex<double> > u, std::string name
     pos.close();
 }
 
+void writeL2Error(std::vector< std::complex<double> > u, std::vector< std::complex<double> > e)
+{
+    std::ofstream file("error.txt");
+    
+    double error = 0., num = 0., denum = 0.;
+    
+    for(unsigned int i = 0; i < u.size(); i++)
+    {
+        num += (std::norm(u[i]) - std::norm(e[i]))*(std::norm(u[i]) - std::norm(e[i]));
+        denum += std::norm(e[i])*std::norm(e[i]);
+    }
+    
+    error = num/denum;
+    
+    file << error;
+    
+    file.close();
+}
+
 Param readParam(int argc, char **argv)
 {
     Param param;
@@ -202,7 +245,7 @@ Param readParam(int argc, char **argv)
     param.rho_2 = 1;
     param.w = 50;
     param.x_bnd = 0.5;
-    param.xfem = false;
+    param.method = Fem;
     
     double phi = 0., A = 1.;
     
@@ -250,7 +293,17 @@ Param readParam(int argc, char **argv)
         }
         else if(strcmp(argv[i], "-xfem") == 0)
         {
-            param.xfem = true;
+            param.method = Xfem;
+            i++;
+        }
+        else if(strcmp(argv[i], "-fem") == 0)
+        {
+            param.method = Fem;
+            i++;
+        }
+        else if(strcmp(argv[i], "-lag") == 0)
+        {
+            param.method = Lagrange;
             i++;
         }
         else if(strcmp(argv[i], "-help") == 0)

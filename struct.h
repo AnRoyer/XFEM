@@ -8,6 +8,12 @@
 // k = w / c
 // Z = rho * c;
 
+enum Method{
+    Fem,
+    Xfem,
+    Lagrange
+};
+
 typedef struct Param{
     double c_1;
     double c_2;
@@ -17,7 +23,7 @@ typedef struct Param{
     double k_2;
     double x_bnd;
     double w;
-    bool xfem;
+    Method method;
     std::complex<double> wave;
 }Param;
 
