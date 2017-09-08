@@ -1,11 +1,11 @@
 /* -*- c++ -*- (enables emacs c++ mode) */
 /*===========================================================================
- 
- Copyright (C) 2002-2012 Yves Renard
- 
- This file is a part of GETFEM++
- 
- Getfem++  is  free software;  you  can  redistribute  it  and/or modify it
+
+ Copyright (C) 2002-2017 Yves Renard
+
+ This file is a part of GetFEM++
+
+ GetFEM++  is  free software;  you  can  redistribute  it  and/or modify it
  under  the  terms  of the  GNU  Lesser General Public License as published
  by  the  Free Software Foundation;  either version 3 of the License,  or
  (at your option) any later version along with the GCC Runtime Library
@@ -17,7 +17,7 @@
  You  should  have received a copy of the GNU Lesser General Public License
  along  with  this program;  if not, write to the Free Software Foundation,
  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
- 
+
  As a special exception, you  may use  this file  as it is a part of a free
  software  library  without  restriction.  Specifically,  if   other  files
  instantiate  templates  or  use macros or inline functions from this file,
@@ -26,7 +26,7 @@
  to be covered  by the GNU Lesser General Public License.  This   exception
  does not  however  invalidate  any  other  reasons why the executable file
  might be covered by the GNU Lesser General Public License.
- 
+
 ===========================================================================*/
 
 /**@file gmm_solver_Schwarz_additive.h
@@ -212,23 +212,22 @@ namespace gmm {
 #ifdef GMM_USES_MPI
      }
       if (nproc != size - 1) {
-	MPI_Sendrecv(Acsr.jc, sizeA+1, MPI_INT, next, tag2,
-		     Acsrtemp.jc, sizeA+1,MPI_INT,previous,tag2,
-		     MPI_COMM_WORLD,&status);
-	if (Acsrtemp.jc[sizeA] > size_type(sizepr)) {
-	  sizepr = Acsrtemp.jc[sizeA];
-	  delete[] Acsrtemp.pr; delete[] Acsrtemp.ir;
-	  Acsrtemp.pr = new value_type[sizepr];
-	  Acsrtemp.ir = new unsigned int[sizepr];
-	}
-	MPI_Sendrecv(Acsr.ir, Acsr.jc[sizeA], MPI_INT, next, tag1,
-		     Acsrtemp.ir, Acsrtemp.jc[sizeA],MPI_INT,previous,tag1,
-		     MPI_COMM_WORLD,&status);
-	
-	MPI_Sendrecv(Acsr.pr, Acsr.jc[sizeA], mpi_type(value_type()), next, tag3, 
-		     Acsrtemp.pr, Acsrtemp.jc[sizeA],mpi_type(value_type()),previous,tag3,
-		     MPI_COMM_WORLD,&status);
-	gmm::copy(Acsrtemp, Acsr);
+        MPI_Sendrecv(&(Acsr.jc[0]), sizeA+1, MPI_INT, next, tag2,
+                     &(Acsrtemp.jc[0]), sizeA+1, MPI_INT, previous, tag2,
+                     MPI_COMM_WORLD, &status);
+        if (Acsrtemp.jc[sizeA] > size_type(sizepr)) {
+          sizepr = Acsrtemp.jc[sizeA];
+          gmm::resize(Acsrtemp.pr, sizepr);
+          gmm::resize(Acsrtemp.ir, sizepr);
+        }
+        MPI_Sendrecv(&(Acsr.ir[0]), Acsr.jc[sizeA], MPI_INT, next, tag1,
+                     &(Acsrtemp.ir[0]), Acsrtemp.jc[sizeA], MPI_INT, previous, tag1,
+                     MPI_COMM_WORLD, &status);
+        
+        MPI_Sendrecv(&(Acsr.pr[0]), Acsr.jc[sizeA], mpi_type(value_type()), next, tag3, 
+                     &(Acsrtemp.pr[0]), Acsrtemp.jc[sizeA], mpi_type(value_type()), previous, tag3,
+                     MPI_COMM_WORLD, &status);
+        gmm::copy(Acsrtemp, Acsr);
       }
     }
       t_final=MPI_Wtime();

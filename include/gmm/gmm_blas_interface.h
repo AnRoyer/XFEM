@@ -1,11 +1,11 @@
 /* -*- c++ -*- (enables emacs c++ mode) */
 /*===========================================================================
- 
- Copyright (C) 2003-2012 Yves Renard
- 
- This file is a part of GETFEM++
- 
- Getfem++  is  free software;  you  can  redistribute  it  and/or modify it
+
+ Copyright (C) 2003-2017 Yves Renard
+
+ This file is a part of GetFEM++
+
+ GetFEM++  is  free software;  you  can  redistribute  it  and/or modify it
  under  the  terms  of the  GNU  Lesser General Public License as published
  by  the  Free Software Foundation;  either version 3 of the License,  or
  (at your option) any later version along with the GCC Runtime Library
@@ -17,7 +17,7 @@
  You  should  have received a copy of the GNU Lesser General Public License
  along  with  this program;  if not, write to the Free Software Foundation,
  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
- 
+
  As a special exception, you  may use  this file  as it is a part of a free
  software  library  without  restriction.  Specifically,  if   other  files
  instantiate  templates  or  use macros or inline functions from this file,
@@ -26,7 +26,7 @@
  to be covered  by the GNU Lesser General Public License.  This   exception
  does not  however  invalidate  any  other  reasons why the executable file
  might be covered by the GNU Lesser General Public License.
- 
+
 ===========================================================================*/
 
 /**@file gmm_blas_interface.h
@@ -46,6 +46,8 @@
 #include "gmm_matrix.h"
 
 namespace gmm {
+
+  // Use ./configure --enable-blas-interface to activate this interface.
 
 #define GMMLAPACK_TRACE(f) 
   // #define GMMLAPACK_TRACE(f) cout << "function " << f << " called" << endl;
@@ -168,16 +170,18 @@ namespace gmm {
     void  sger_(...); void  dger_(...); void  cgerc_(...); void  zgerc_(...); 
   }
 
+#if 1
+
   /* ********************************************************************* */
   /* vect_norm2(x).                                                        */
   /* ********************************************************************* */
 
-  # define nrm2_interface(param1, trans1, blas_name, base_type)            \
-  inline number_traits<base_type >::magnitude_type                         \
-    vect_norm2(param1(base_type)) {                                        \
-    GMMLAPACK_TRACE("nrm2_interface");                                     \
-    int inc(1), n(int(vect_size(x))); trans1(base_type);	       	   \
-    return blas_name(&n, &x[0], &inc);                                     \
+# define nrm2_interface(param1, trans1, blas_name, base_type)		   \
+  inline number_traits<base_type >::magnitude_type			   \
+  vect_norm2(param1(base_type)) {					   \
+    GMMLAPACK_TRACE("nrm2_interface");					   \
+    int inc(1), n(int(vect_size(x))); trans1(base_type);		   \
+    return blas_name(&n, &x[0], &inc);					   \
   }
 
 # define nrm2_p1(base_type) const std::vector<base_type > &x
@@ -192,7 +196,7 @@ namespace gmm {
   /* vect_sp(x, y).                                                        */
   /* ********************************************************************* */
 
-  # define dot_interface(param1, trans1, mult1, param2, trans2, mult2,     \
+# define dot_interface(param1, trans1, mult1, param2, trans2, mult2,	   \
                          blas_name, base_type)                             \
   inline base_type vect_sp(param1(base_type), param2(base_type)) {         \
     GMMLAPACK_TRACE("dot_interface");                                      \
@@ -259,8 +263,8 @@ namespace gmm {
   /* vect_hp(x, y).                                                        */
   /* ********************************************************************* */
 
-  # define dotc_interface(param1, trans1, mult1, param2, trans2, mult2,    \
-                         blas_name, base_type)                             \
+# define dotc_interface(param1, trans1, mult1, param2, trans2, mult2,	   \
+			blas_name, base_type)				   \
   inline base_type vect_hp(param1(base_type), param2(base_type)) {         \
     GMMLAPACK_TRACE("dotc_interface");                                     \
     trans1(base_type); trans2(base_type); int inc(1), n(int(vect_size(y)));\
@@ -329,6 +333,7 @@ namespace gmm {
   inline void add(param1(base_type), std::vector<base_type > &y) {         \
     GMMLAPACK_TRACE("axpy_interface");                                     \
     int inc(1), n(int(vect_size(y))); trans1(base_type);	 	   \
+    if (n == 0) return;							   \
     blas_name(&n, &a, &x[0], &inc, &y[0], &inc);                           \
   }
 
@@ -690,7 +695,7 @@ namespace gmm {
 
 # define gemm_interface_nt(blas_name, base_type, is_const)                 \
   inline void mult_spec(const dense_matrix<base_type > &A,                 \
-         const transposed_col_ref<is_const<base_type > *> &B_,\
+		     const transposed_col_ref<is_const<base_type > *> &B_, \
          dense_matrix<base_type > &C, r_mult) {                            \
     GMMLAPACK_TRACE("gemm_interface_nt");                                  \
     dense_matrix<base_type > &B                                            \
@@ -721,9 +726,9 @@ namespace gmm {
 
 # define gemm_interface_tt(blas_name, base_type, isA_const, isB_const)     \
   inline void mult_spec(                                                   \
-        const transposed_col_ref<isA_const <base_type > *> &A_,\
-        const transposed_col_ref<isB_const <base_type > *> &B_,\
-        dense_matrix<base_type > &C, r_mult) {                             \
+	       const transposed_col_ref<isA_const <base_type > *> &A_,	   \
+               const transposed_col_ref<isB_const <base_type > *> &B_,	   \
+	       dense_matrix<base_type > &C, r_mult) {			   \
     GMMLAPACK_TRACE("gemm_interface_tt");                                  \
     dense_matrix<base_type > &A                                            \
         = const_cast<dense_matrix<base_type > &>(*(linalg_origin(A_)));    \
@@ -935,6 +940,7 @@ namespace gmm {
   trsv_interface(upper_tri_solve, trsv_lower, gem_p1_c, gem_trans1_c,
 		 ztrsv_, BLAS_Z)
   
+#endif
 }
 
 #endif // GMM_BLAS_INTERFACE_H

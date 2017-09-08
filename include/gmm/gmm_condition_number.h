@@ -1,11 +1,11 @@
 /* -*- c++ -*- (enables emacs c++ mode) */
 /*===========================================================================
- 
- Copyright (C) 2003-2012 Yves Renard, Julien Pommier
- 
- This file is a part of GETFEM++
- 
- Getfem++  is  free software;  you  can  redistribute  it  and/or modify it
+
+ Copyright (C) 2003-2017 Yves Renard, Julien Pommier
+
+ This file is a part of GetFEM++
+
+ GetFEM++  is  free software;  you  can  redistribute  it  and/or modify it
  under  the  terms  of the  GNU  Lesser General Public License as published
  by  the  Free Software Foundation;  either version 3 of the License,  or
  (at your option) any later version along with the GCC Runtime Library
@@ -17,7 +17,7 @@
  You  should  have received a copy of the GNU Lesser General Public License
  along  with  this program;  if not, write to the Free Software Foundation,
  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
- 
+
  As a special exception, you  may use  this file  as it is a part of a free
  software  library  without  restriction.  Specifically,  if   other  files
  instantiate  templates  or  use macros or inline functions from this file,
@@ -26,7 +26,7 @@
  to be covered  by the GNU Lesser General Public License.  This   exception
  does not  however  invalidate  any  other  reasons why the executable file
  might be covered by the GNU Lesser General Public License.
- 
+
 ===========================================================================*/
 
 /**@file gmm_condition_number.h
@@ -60,6 +60,10 @@ namespace gmm {
     typedef typename linalg_traits<MAT>::value_type T;
     typedef typename number_traits<T>::magnitude_type R;
 
+    // Added because of errors in complex with zero det
+    if (sizeof(T) != sizeof(R) && gmm::abs(gmm::lu_det(M)) == R(0))
+      return  gmm::default_max(R());
+      
     size_type m = mat_nrows(M), n = mat_ncols(M);
     emax = emin = R(0);
     std::vector<R> eig(m+n);

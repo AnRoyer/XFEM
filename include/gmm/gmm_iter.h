@@ -1,11 +1,11 @@
 /* -*- c++ -*- (enables emacs c++ mode) */
 /*===========================================================================
- 
- Copyright (C) 2002-2012 Yves Renard
- 
- This file is a part of GETFEM++
- 
- Getfem++  is  free software;  you  can  redistribute  it  and/or modify it
+
+ Copyright (C) 2002-2017 Yves Renard
+
+ This file is a part of GetFEM++
+
+ GetFEM++  is  free software;  you  can  redistribute  it  and/or modify it
  under  the  terms  of the  GNU  Lesser General Public License as published
  by  the  Free Software Foundation;  either version 3 of the License,  or
  (at your option) any later version along with the GCC Runtime Library
@@ -17,7 +17,7 @@
  You  should  have received a copy of the GNU Lesser General Public License
  along  with  this program;  if not, write to the Free Software Foundation,
  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
- 
+
  As a special exception, you  may use  this file  as it is a part of a free
  software  library  without  restriction.  Specifically,  if   other  files
  instantiate  templates  or  use macros or inline functions from this file,
@@ -26,7 +26,7 @@
  to be covered  by the GNU Lesser General Public License.  This   exception
  does not  however  invalidate  any  other  reasons why the executable file
  might be covered by the GNU Lesser General Public License.
- 
+
 ===========================================================================*/
 
 /**@file gmm_iter.h
@@ -39,6 +39,7 @@
 #define GMM_ITER_H__
 
 #include "gmm_kernel.h"
+#include <iomanip>
 
 namespace gmm {
 
@@ -72,7 +73,7 @@ namespace gmm {
     }
 
     iteration(double r = 1.0E-8, int noi = 0, size_type mit = size_type(-1),
-	      double div_res = 1E200)
+              double div_res = 1E200)
       : rhsn(1.0), maxiter(mit), noise(noi), resmax(r), diverged_res(div_res)
     { init(); }
 
@@ -110,34 +111,40 @@ namespace gmm {
     double get_rhsnorm(void) const { return rhsn; }
     void set_rhsnorm(double r) { rhsn = r; }
     
-    bool converged(void) { return res <= rhsn * resmax; }
+    bool converged(void) {
+      return !isnan(res) && res <= rhsn * resmax;
+    }
     bool converged(double nr) { 
-      res = gmm::abs(nr); resminreach = std::min(resminreach, res);
+      res = gmm::abs(nr);
+      resminreach = std::min(resminreach, res);
       return converged();
     }
     template <typename VECT> bool converged(const VECT &v)
     { return converged(gmm::vect_norm2(v)); }
-    bool diverged(void)
-    { return (nit>=maxiter) || (res>=rhsn*diverged_res && nit > 4); }
-    bool diverged(double nr) { 
-      res = gmm::abs(nr); resminreach = std::min(resminreach, res);
+    bool diverged(void) {
+      return isnan(res) || (nit>=maxiter)
+                        || (res>=rhsn*diverged_res && nit > 4);
+    }
+    bool diverged(double nr) {
+      res = gmm::abs(nr);
+      resminreach = std::min(resminreach, res);
       return diverged();
     }
 
     bool finished(double nr) {
       if (callback) callback(*this);
       if (noise > 0 && !written) {
-	double a = (rhsn == 0) ? 1.0 : rhsn;
-	converged(nr);
-	cout << name << " iter " << nit << " residual "
-	     << gmm::abs(nr) / a;
-// 	if (nit % 100 == 0 && nit > 0) {
-// 	  cout << " (residual min " << resminreach / a << " mean val "
-// 	       << resadd / (100.0 * a) << " )";
-// 	  resadd = 0.0;
-// 	}
-	cout <<  endl;
-	written = true;
+        double a = (rhsn == 0) ? 1.0 : rhsn;
+        converged(nr);
+        cout << name << " iter " << std::setw(3) << nit << " residual "
+             << std::setw(12) << gmm::abs(nr) / a;
+//         if (nit % 100 == 0 && nit > 0) {
+//           cout << " (residual min " << resminreach / a << " mean val "
+//                << resadd / (100.0 * a) << " )";
+//           resadd = 0.0;
+//         }
+        cout <<  endl;
+        written = true;
       }
       return (converged(nr) || diverged(nr));
     }

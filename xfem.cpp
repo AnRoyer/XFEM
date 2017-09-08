@@ -6,8 +6,9 @@
 
 #include <MLine.h>
 
-std::vector< std::complex<double> > XFEM::solve(GModel* m, int nbNodes, Param param, Physical physical)
+std::vector< std::complex<double> > XFEM::solve(GModel* m, Param param, Physical physical)
 {
+  int nbNodes = m->getNumMeshVertices();
   gmm::csr_matrix< std::complex<double> > K(nbNodes+2, nbNodes+2);
   gmm::row_matrix< gmm::wsvector< std::complex<double> > > Ktmp(nbNodes+2, nbNodes+2);
   std::vector< std::complex<double> > u(nbNodes+2);
@@ -82,8 +83,9 @@ void XFEM::computeK(gmm::row_matrix< gmm::wsvector< std::complex<double> > > &Kt
           gmm::dense_matrix<double> Ke(4,4);
           gmm::dense_matrix<double> Me(4,4);
           
-          setLsu(0, (x[0]-bnd)/J(0,0) );
-          setLsu(1, (x[1]-bnd)/J(0,0) );
+          //lst[0] must be smaller than lst[1]
+          setLst(0, (x[0]-bnd)/J(0,0) );
+          setLst(1, (x[1]-bnd)/J(0,0) );
           
           for(unsigned int i = 0; i < 4; i++)//i = 2, i = 3 -> enrichment
           {

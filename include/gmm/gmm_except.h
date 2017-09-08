@@ -1,11 +1,11 @@
 /* -*- c++ -*- (enables emacs c++ mode) */
 /*===========================================================================
- 
- Copyright (C) 2002-2012 Yves Renard
- 
- This file is a part of GETFEM++
- 
- Getfem++  is  free software;  you  can  redistribute  it  and/or modify it
+
+ Copyright (C) 2002-2017 Yves Renard
+
+ This file is a part of GetFEM++
+
+ GetFEM++  is  free software;  you  can  redistribute  it  and/or modify it
  under  the  terms  of the  GNU  Lesser General Public License as published
  by  the  Free Software Foundation;  either version 3 of the License,  or
  (at your option) any later version along with the GCC Runtime Library
@@ -17,7 +17,7 @@
  You  should  have received a copy of the GNU Lesser General Public License
  along  with  this program;  if not, write to the Free Software Foundation,
  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
- 
+
  As a special exception, you  may use  this file  as it is a part of a free
  software  library  without  restriction.  Specifically,  if   other  files
  instantiate  templates  or  use macros or inline functions from this file,
@@ -26,7 +26,7 @@
  to be covered  by the GNU Lesser General Public License.  This   exception
  does not  however  invalidate  any  other  reasons why the executable file
  might be covered by the GNU Lesser General Public License.
- 
+
 ===========================================================================*/
 
 /** @file gmm_except.h 
@@ -39,15 +39,15 @@
 #ifndef GMM_EXCEPT_H__
 #define GMM_EXCEPT_H__
 
+#include "gmm_std.h"
+
 //provides external implementation of gmm_exception and logging.
 #ifndef EXTERNAL_EXCEPT_
-
-#include "gmm_std.h"
 
 namespace gmm {
 
 /* *********************************************************************** */
-/*	Getfem++ generic errors.                     			   */
+/*	GetFEM++ generic errors.                     			   */
 /* *********************************************************************** */
 
   class gmm_error: public std::logic_error {
@@ -69,14 +69,14 @@ namespace gmm {
   //               defined.
   //          GMM_ASSERT3 : For internal checks. Hidden by default. Active
   //               only when DEBUG_MODE is defined.
-// __EXCEPTIONS is defined by gcc, _CPPUNWIND is defined by visual c++
+  // __EXCEPTIONS is defined by gcc, _CPPUNWIND is defined by visual c++
 #if defined(__EXCEPTIONS) || defined(_CPPUNWIND)
   inline void short_error_throw(const char *file, int line, const char *func,
 				const char *errormsg) {
     std::stringstream msg__;
     msg__ << "Error in " << file << ", line " << line << " " << func
 	  << ": \n" << errormsg << std::ends;
-    throw gmm::gmm_error(msg__.str());	
+    throw gmm::gmm_error(msg__.str());
   }
 # define GMM_THROW_(type, errormsg) {					\
     std::stringstream msg__;						\
@@ -115,7 +115,6 @@ namespace gmm {
 # define GMM_ASSERT1(test, errormsg)		        		\
   { if (!(test)) GMM_THROW_(gmm::gmm_error, errormsg); }
 
-  // inline void GMM_THROW() IS_DEPRECATED;
   inline void GMM_THROW() {}
 #define GMM_THROW(a, b) { GMM_THROW_(a,b); gmm::GMM_THROW(); }
 
@@ -124,20 +123,17 @@ namespace gmm {
 # define GMM_ASSERT3(test, errormsg) {}
 #elif !defined(GMM_FULL_NDEBUG)
 # define GMM_ASSERT2(test, errormsg)				        \
-  { if (!(test)) gmm::short_error_throw(__FILE__, __LINE__,		\
-				   GMM_PRETTY_FUNCTION, errormsg); }
+  { if (!(test)) GMM_THROW_(gmm::gmm_error, errormsg); }
 # define GMM_ASSERT3(test, errormsg)				        \
-  { if (!(test)) gmm::short_error_throw(__FILE__, __LINE__,		\
-				   GMM_PRETTY_FUNCTION, errormsg); }
+  { if (!(test)) GMM_THROW_(gmm::gmm_error, errormsg); }
 #else
 # define GMM_ASSERT2(test, errormsg)          				\
-  { if (!(test)) gmm::short_error_throw(__FILE__, __LINE__,		\
-				   GMM_PRETTY_FUNCTION, errormsg); }
+  { if (!(test)) GMM_THROW_(gmm::gmm_error, errormsg); }
 # define GMM_ASSERT3(test, errormsg)
 #endif
 
 /* *********************************************************************** */
-/*	Getfem++ warnings.                         			   */
+/*	GetFEM++ warnings.                         			   */
 /* *********************************************************************** */
 
   // This allows to dynamically hide warnings
@@ -198,7 +194,7 @@ namespace gmm {
 #endif
 
 /* *********************************************************************** */
-/*	Getfem++ traces.                         			   */
+/*	GetFEM++ traces.                         			   */
 /* *********************************************************************** */
 
   // This allows to dynamically hide traces
@@ -211,7 +207,7 @@ namespace gmm {
 
   // This allow not too compile some Warnings
 #ifndef GMM_TRACES_LEVEL
-# define GMM_TRACES_LEVEL 3
+# define GMM_TRACES_LEVEL 4
 #endif
 
   // Traces levels : 0 always printed
@@ -265,66 +261,51 @@ namespace gmm {
   /*    Definitions for compatibility with old versions.        	   */
   /* ********************************************************************* */ 
   
-  using std::invalid_argument;
-  
-  struct dimension_error : public std::logic_error
-  { dimension_error(const std::string& w): std::logic_error(w) {} };
-  struct file_not_found_error : public std::logic_error
-  { file_not_found_error(const std::string& w): std::logic_error (w) {} };
-  struct internal_error : public std::logic_error
-  { internal_error(const std::string& w): std::logic_error(w) {} };
-  struct failure_error : public std::logic_error
-  { failure_error(const std::string& w): std::logic_error (w) {} };
-  struct not_linear_error : public std::logic_error
-  { not_linear_error(const std::string& w): std::logic_error (w) {} };
-  struct to_be_done_error : public std::logic_error
-  { to_be_done_error(const std::string& w): std::logic_error (w) {} };
-
-#define GMM_STANDARD_CATCH_ERROR   catch(std::logic_error e)	\
-    {								\
+#define GMM_STANDARD_CATCH_ERROR   catch(std::logic_error e)		\
+    {									\
       std::cerr << "============================================\n";	\
       std::cerr << "|      An error has been detected !!!      |\n";	\
       std::cerr << "============================================\n";	\
-      std::cerr << e.what() << std::endl << std::endl;				\
-      exit(1);							\
-    }								\
-  catch(std::runtime_error e)					\
-    {								\
+      std::cerr << e.what() << std::endl << std::endl;			\
+      exit(1);								\
+    }									\
+  catch(const std::runtime_error &e)					\
+    {									\
       std::cerr << "============================================\n";	\
       std::cerr << "|      An error has been detected !!!      |\n";	\
       std::cerr << "============================================\n";	\
-      std::cerr << e.what() << std::endl << std::endl;				\
-      exit(1);							\
-    }								\
-  catch(std::bad_alloc) {					\
+      std::cerr << e.what() << std::endl << std::endl;			\
+      exit(1);								\
+    }									\
+  catch(const std::bad_alloc &) {					\
     std::cerr << "============================================\n";	\
     std::cerr << "|  A bad allocation has been detected !!!  |\n";	\
     std::cerr << "============================================\n";	\
-    exit(1);							\
-  }								\
-  catch(std::bad_typeid) {					\
+    exit(1);								\
+  }									\
+  catch(const std::bad_typeid &) {					\
     std::cerr << "============================================\n";	\
     std::cerr << "|  A bad typeid     has been detected !!!  |\n";	\
     std::cerr << "============================================\n";	\
-    exit(1);							\
-  }								\
-  catch(std::bad_exception) {					\
+    exit(1);								\
+  }									\
+  catch(const std::bad_exception &) {					\
     std::cerr << "============================================\n";	\
     std::cerr << "|  A bad exception  has been detected !!!  |\n";	\
     std::cerr << "============================================\n";	\
-    exit(1);							\
-  }								\
-  catch(std::bad_cast) {					\
+    exit(1);								\
+  }									\
+  catch(const std::bad_cast &) {					\
     std::cerr << "============================================\n";	\
     std::cerr << "|    A bad cast  has been detected !!!     |\n";	\
     std::cerr << "============================================\n";	\
-    exit(1);							\
-  }								\
-  catch(...) {							\
+    exit(1);								\
+  }									\
+  catch(...) {								\
     std::cerr << "============================================\n";	\
     std::cerr << "|  An unknown error has been detected !!!  |\n";	\
     std::cerr << "============================================\n";	\
-    exit(1);							\
+    exit(1);								\
   }
   //   catch(ios_base::failure) { 
   //     std::cerr << "============================================\n";

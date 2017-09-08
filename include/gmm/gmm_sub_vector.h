@@ -1,11 +1,11 @@
 /* -*- c++ -*- (enables emacs c++ mode) */
 /*===========================================================================
- 
- Copyright (C) 2002-2012 Yves Renard
- 
- This file is a part of GETFEM++
- 
- Getfem++  is  free software;  you  can  redistribute  it  and/or modify it
+
+ Copyright (C) 2002-2017 Yves Renard
+
+ This file is a part of GetFEM++
+
+ GetFEM++  is  free software;  you  can  redistribute  it  and/or modify it
  under  the  terms  of the  GNU  Lesser General Public License as published
  by  the  Free Software Foundation;  either version 3 of the License,  or
  (at your option) any later version along with the GCC Runtime Library
@@ -17,7 +17,7 @@
  You  should  have received a copy of the GNU Lesser General Public License
  along  with  this program;  if not, write to the Free Software Foundation,
  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
- 
+
  As a special exception, you  may use  this file  as it is a part of a free
  software  library  without  restriction.  Specifically,  if   other  files
  instantiate  templates  or  use macros or inline functions from this file,
@@ -26,7 +26,7 @@
  to be covered  by the GNU Lesser General Public License.  This   exception
  does not  however  invalidate  any  other  reasons why the executable file
  might be covered by the GNU Lesser General Public License.
- 
+
 ===========================================================================*/
 
 /**@file gmm_sub_vector.h
@@ -534,7 +534,8 @@ namespace gmm {
     typename sub_vector_type<const V *, SUBI>::vector_type,
     typename sub_vector_type<V *, SUBI>::vector_type, const V *>::return_type
   sub_vector(const V &v, const SUBI &si) {
-    GMM_ASSERT2(si.last() <= vect_size(v), "sub vector too large");
+    GMM_ASSERT2(si.last() <= vect_size(v),
+                "sub vector too large, " << si.last() << " > " << vect_size(v));
     return typename select_return<
       typename sub_vector_type<const V *, SUBI>::vector_type,
       typename sub_vector_type<V *, SUBI>::vector_type, const V *>::return_type
@@ -546,7 +547,8 @@ namespace gmm {
     typename sub_vector_type<const V *, SUBI>::vector_type,
     typename sub_vector_type<V *, SUBI>::vector_type, V *>::return_type
   sub_vector(V &v, const SUBI &si) {
-    GMM_ASSERT2(si.last() <= vect_size(v), "sub vector too large");
+    GMM_ASSERT2(si.last() <= vect_size(v),
+                "sub vector too large, " << si.last() << " > " << vect_size(v));
     return  typename select_return<
       typename sub_vector_type<const V *, SUBI>::vector_type,
       typename sub_vector_type<V *, SUBI>::vector_type, V *>::return_type

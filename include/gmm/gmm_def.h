@@ -1,11 +1,11 @@
 /* -*- c++ -*- (enables emacs c++ mode) */
 /*===========================================================================
- 
- Copyright (C) 2002-2012 Yves Renard
- 
- This file is a part of GETFEM++
- 
- Getfem++  is  free software;  you  can  redistribute  it  and/or modify it
+
+ Copyright (C) 2002-2017 Yves Renard
+
+ This file is a part of GetFEM++
+
+ GetFEM++  is  free software;  you  can  redistribute  it  and/or modify it
  under  the  terms  of the  GNU  Lesser General Public License as published
  by  the  Free Software Foundation;  either version 3 of the License,  or
  (at your option) any later version along with the GCC Runtime Library
@@ -17,7 +17,7 @@
  You  should  have received a copy of the GNU Lesser General Public License
  along  with  this program;  if not, write to the Free Software Foundation,
  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
- 
+
  As a special exception, you  may use  this file  as it is a part of a free
  software  library  without  restriction.  Specifically,  if   other  files
  instantiate  templates  or  use macros or inline functions from this file,
@@ -26,7 +26,7 @@
  to be covered  by the GNU Lesser General Public License.  This   exception
  does not  however  invalidate  any  other  reasons why the executable file
  might be covered by the GNU Lesser General Public License.
- 
+
 ===========================================================================*/
 
 /**@file gmm_def.h
@@ -221,23 +221,33 @@ namespace gmm {
   };
 
   /* ******************************************************************** */
-  /*  types to deal with const object representing a modifiable reference */
+  /* Original type from a pointer or a reference.                         */
+  /* ******************************************************************** */
+
+  template <typename V> struct org_type            { typedef V t; };
+  template <typename V> struct org_type<V *>       { typedef V t; };
+  template <typename V> struct org_type<const V *> { typedef V t; };
+  template <typename V> struct org_type<V &>       { typedef V t; };
+  template <typename V> struct org_type<const V &> { typedef V t; };
+
+  /* ******************************************************************** */
+  /*  Types to deal with const object representing a modifiable reference */
   /* ******************************************************************** */
   
   template <typename PT, typename R> struct mref_type_ 
   { typedef abstract_null_type return_type; };
   template <typename L, typename R> struct mref_type_<L *, R>
-  { typedef L & return_type; };
+  { typedef typename org_type<L>::t & return_type; };
   template <typename L, typename R> struct mref_type_<const L *, R>
-  { typedef const L & return_type; };
+  { typedef const typename org_type<L>::t & return_type; };
   template <typename L> struct mref_type_<L *, linalg_const>
-  { typedef const L & return_type; };
+  { typedef const typename org_type<L>::t & return_type; };
   template <typename L> struct mref_type_<const L *, linalg_const>
-  { typedef const L & return_type; };
+  { typedef const typename org_type<L>::t & return_type; };
   template <typename L> struct mref_type_<const L *, linalg_modifiable>
-  { typedef L & return_type; };
+  { typedef typename org_type<L>::t & return_type; };
   template <typename L> struct mref_type_<L *, linalg_modifiable>
-  { typedef L & return_type; };
+  { typedef typename org_type<L>::t & return_type; };
 
   template <typename PT> struct mref_type {
     typedef typename std::iterator_traits<PT>::value_type L;
@@ -255,7 +265,7 @@ namespace gmm {
   template <typename L, typename R> struct cref_type_
   { typedef abstract_null_type return_type; };
   template <typename L> struct cref_type_<L, linalg_modifiable>
-  { typedef L & return_type; };
+  { typedef typename org_type<L>::t & return_type; };
   template <typename L> struct cref_type {
     typedef typename cref_type_<L, 
       typename linalg_traits<L>::is_reference>::return_type return_type;
@@ -409,13 +419,6 @@ namespace gmm {
 # define magnitude_of_linalg(M) typename number_traits<typename \
                     linalg_traits<M>::value_type>::magnitude_type
   
-  template<typename T> inline std::complex<T> operator*(const std::complex<T>& a, int b) {
-    return a*T(b);
-  }
-  template<typename T> inline std::complex<T> operator*(int b, const std::complex<T>& a) {
-    return a*T(b);
-  }
-
   /* ******************************************************************** */
   /*  types promotion                                                     */
   /* ******************************************************************** */
@@ -483,6 +486,7 @@ namespace gmm {
 
   template <typename T> class wsvector;
   template <typename T> class rsvector;
+  template <typename T> class dsvector;
   template<typename T> struct sparse_vector_type 
   { typedef wsvector<T> vector_type; };
 

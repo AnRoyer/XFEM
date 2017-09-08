@@ -1,11 +1,11 @@
 /* -*- c++ -*- (enables emacs c++ mode) */
 /*===========================================================================
- 
- Copyright (C) 2002-2012 Yves Renard
- 
- This file is a part of GETFEM++
- 
- Getfem++  is  free software;  you  can  redistribute  it  and/or modify it
+
+ Copyright (C) 2002-2017 Yves Renard
+
+ This file is a part of GetFEM++
+
+ GetFEM++  is  free software;  you  can  redistribute  it  and/or modify it
  under  the  terms  of the  GNU  Lesser General Public License as published
  by  the  Free Software Foundation;  either version 3 of the License,  or
  (at your option) any later version along with the GCC Runtime Library
@@ -17,7 +17,7 @@
  You  should  have received a copy of the GNU Lesser General Public License
  along  with  this program;  if not, write to the Free Software Foundation,
  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
- 
+
  As a special exception, you  may use  this file  as it is a part of a free
  software  library  without  restriction.  Specifically,  if   other  files
  instantiate  templates  or  use macros or inline functions from this file,
@@ -26,7 +26,7 @@
  to be covered  by the GNU Lesser General Public License.  This   exception
  does not  however  invalidate  any  other  reasons why the executable file
  might be covered by the GNU Lesser General Public License.
- 
+
 ===========================================================================*/
 
 /**@file gmm_transposed.h
@@ -90,7 +90,7 @@ namespace gmm {
     typedef abstract_null_type const_row_iterator;
     typedef typename linalg_traits<M>::const_sub_row_type const_sub_col_type;
     typedef typename select_ref<abstract_null_type, typename
-            linalg_traits<M>::sub_row_type, PT>::ref_type sub_col_type;
+	    linalg_traits<M>::sub_row_type, PT>::ref_type sub_col_type;
     typedef typename linalg_traits<M>::const_row_iterator const_col_iterator;
     typedef typename select_ref<abstract_null_type, typename
             linalg_traits<M>::row_iterator, PT>::ref_type col_iterator;
@@ -171,7 +171,7 @@ namespace gmm {
     typedef abstract_null_type const_col_iterator;
     typedef typename linalg_traits<M>::const_sub_col_type const_sub_row_type;
     typedef typename select_ref<abstract_null_type, typename
-            linalg_traits<M>::sub_col_type, PT>::ref_type sub_row_type;
+	    linalg_traits<M>::sub_col_type, PT>::ref_type sub_row_type;
     typedef typename linalg_traits<M>::const_col_iterator const_row_iterator;
     typedef typename select_ref<abstract_null_type, typename
             linalg_traits<M>::col_iterator, PT>::ref_type row_iterator;

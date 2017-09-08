@@ -1,11 +1,11 @@
 /* -*- c++ -*- (enables emacs c++ mode) */
 /*===========================================================================
- 
- Copyright (C) 2009-2012 Yves Renard
- 
- This file is a part of GETFEM++
- 
- Getfem++  is  free software;  you  can  redistribute  it  and/or modify it
+
+ Copyright (C) 2009-2017 Yves Renard
+
+ This file is a part of GetFEM++
+
+ GetFEM++  is  free software;  you  can  redistribute  it  and/or modify it
  under  the  terms  of the  GNU  Lesser General Public License as published
  by  the  Free Software Foundation;  either version 3 of the License,  or
  (at your option) any later version along with the GCC Runtime Library
@@ -17,7 +17,7 @@
  You  should  have received a copy of the GNU Lesser General Public License
  along  with  this program;  if not, write to the Free Software Foundation,
  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
- 
+
  As a special exception, you  may use  this file  as it is a part of a free
  software  library  without  restriction.  Specifically,  if   other  files
  instantiate  templates  or  use macros or inline functions from this file,
@@ -26,7 +26,7 @@
  to be covered  by the GNU Lesser General Public License.  This   exception
  does not  however  invalidate  any  other  reasons why the executable file
  might be covered by the GNU Lesser General Public License.
- 
+
 ===========================================================================*/
 
 /**@file gmm_range_basis.h
@@ -437,7 +437,7 @@ namespace gmm {
           c1.clear();
         }
       }
-      if (c1.size() > 10)
+      if (c1.size() > 1)
         range_basis_eff_Gram_Schmidt_dense(B, c1, c_ortho, EPS);
       for (std::set<size_type>::iterator it = c1.begin(); it != c1.end(); ++it)
         cres.insert(*it);
@@ -446,7 +446,6 @@ namespace gmm {
       if (columns.size() == nc_r) break;
       if (sizesm[k] >= 350 && columns.size() > (nc_r*19)/20) break;
     }
-    // cout << "size of columns " << columns.size() << endl;
     if (columns.size() > std::max(size_type(10), actsize))
       range_basis_eff_Lanczos(B, columns, EPS);
     else
